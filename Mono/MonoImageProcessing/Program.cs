@@ -32,8 +32,8 @@ namespace MonoImageProcessing
             {
                 Directory.CreateDirectory(outputDirectory);
             }
-            Console.WriteLine($"{"Library",15} | {"Time (ms)",9} | {"Size (kB)",9} |");
-            Console.WriteLine("---------------:|----------:|----------:|");
+            Console.WriteLine($"| {"Library",15} | {"Time (ms)",9} | {"Size (kB)",9} |");
+            Console.WriteLine($"|-----------------|----------:|----------:|");
             // Resize the images using SkiaSharp
             var watch = new Stopwatch();
             watch.Start();
@@ -60,7 +60,7 @@ namespace MonoImageProcessing
                 .GetFiles(processedImagesDirectory, "*-" + library + ".jpg")
                 .Select(f => new FileInfo(f).Length)
                 .Sum() / count;
-            Console.WriteLine($"{library,15} | {elapsed / count,9} | {size / 1024,9} |");
+            Console.WriteLine($"| {library,15} | {(float)elapsed / count,9: #.0} | {(float)size / 1024,9: #.0} |");
         }
 
         public static void SkiaResize(string path, int size, string outputDirectory)
