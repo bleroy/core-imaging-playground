@@ -1,0 +1,8 @@
+*.userprefs
+bin
+obj
+packages
+.vs
+output
+*.user
+project.lock.json
