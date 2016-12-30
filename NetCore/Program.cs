@@ -160,18 +160,9 @@ namespace ImageProcessing
             using (var image = new MagickImage(path))
             {
                 // Resize it to fit a 150x150 square
-                int width, height;
-                if (image.Width > image.Height)
-                {
-                    width = size;
-                    height = image.Height * size / image.Width;
-                }
-                else
-                {
-                    width = image.Width * size / image.Height;
-                    height = size;
-                }
-                image.Resize(width, height);
+                image.Resize(size, size);
+                // Reduce the size of the file
+                image.Strip();
                 // Save the results
                 image.Write(OutputPath(path, outputDirectory, ImageMagick));
             }
