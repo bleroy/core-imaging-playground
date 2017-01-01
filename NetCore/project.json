@@ -4,7 +4,6 @@
     "debugType": "portable",
     "emitEntryPoint": true
   },
-
   "frameworks": {
     "netcoreapp1.0": {
       "dependencies": {
@@ -14,7 +13,7 @@
         },
         "BenchmarkDotNet": "0.10.0",
         "CoreCompat.System.Drawing": "1.0.0-beta006",
-        "ImageSharp": "1.0.0-alpha-000095",
+        "ImageSharp": "1.0.0-alpha-000304",
         "Magick.NET.Core-Q8": "7.0.4.100"
       },
       "imports": "dnxcore50"
