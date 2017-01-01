@@ -1,21 +1,22 @@
 {
   "version": "1.0.0-*",
   "buildOptions": {
+    "debugType": "portable",
     "emitEntryPoint": true
-  },
-
-  "dependencies": {
-    "CoreCompat.System.Drawing": "1.0.0-beta006",
-    "ImageSharp": "1.0.0-alpha-000095",
-    "Magick.NET.Core-Q8": "7.0.3.901",
-    "Microsoft.NETCore.App": {
-      "type": "platform",
-      "version": "1.0.1"
-    }
   },
 
   "frameworks": {
     "netcoreapp1.0": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.3"
+        },
+        "BenchmarkDotNet": "0.10.0",
+        "CoreCompat.System.Drawing": "1.0.0-beta006",
+        "ImageSharp": "1.0.0-alpha-000095",
+        "Magick.NET.Core-Q8": "7.0.4.100"
+      },
       "imports": "dnxcore50"
     }
   }

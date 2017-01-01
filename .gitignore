@@ -6,3 +6,4 @@ packages
 output
 *.user
 project.lock.json
+BenchmarkDotNet.Artifacts
