@@ -14,7 +14,11 @@ using System.Linq;
 
 namespace ImageProcessing
 {
-    public class ImageResizingBenchmarks
+    using System;
+
+    using ImageSharp.Formats;
+
+    public class LoadResizeSave
     {
         const int ThumbnailSize = 150;
         const string ImageSharp = nameof(ImageSharp);
@@ -24,8 +28,14 @@ namespace ImageProcessing
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
 
-        public ImageResizingBenchmarks()
+        public LoadResizeSave()
         {
+            // Add ImageSharp Formats
+            Configuration.Default.AddImageFormat(new JpegFormat());
+            Configuration.Default.AddImageFormat(new PngFormat());
+            Configuration.Default.AddImageFormat(new BmpFormat());
+            Configuration.Default.AddImageFormat(new GifFormat());
+
             // Find the closest images directory
             var imageDirectory = Path.GetFullPath(".");
             while (!Directory.Exists(Path.Combine(imageDirectory, "images")))
@@ -56,7 +66,7 @@ namespace ImageProcessing
                 + Path.GetExtension(inputPath));
         }
 
-        [Benchmark]
+        [Benchmark(Description = "ImageSharp Resize")]
         public void ImageSharpBenchmark()
         {
             foreach (var image in _images)
@@ -84,7 +94,7 @@ namespace ImageProcessing
             }
         }
 
-        [Benchmark]
+        [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
         public void SystemDrawingResizeBenchmark()
         {
             foreach (var image in _images)
@@ -95,35 +105,36 @@ namespace ImageProcessing
 
         public static void SystemDrawingResize(string path, int size, string outputDirectory)
         {
-            var image = new Bitmap(SystemDrawingImage.FromFile(path));
-            // Resize it to fit a 150x150 square
-            int width, height;
-            if (image.Width > image.Height)
+            using (var image = new Bitmap(SystemDrawingImage.FromFile(path)))
             {
-                width = size;
-                height = image.Height * size / image.Width;
-            }
-            else
-            {
-                width = image.Width * size / image.Height;
-                height = size;
-            }
-            var resized = new Bitmap(width, height);
-            using (var graphics = Graphics.FromImage(resized))
-            {
-                graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.DrawImage(image, 0, 0, width, height);
-                // Save the results
-                using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SystemDrawing)))
+                int width, height;
+                if (image.Width > image.Height)
                 {
-                    resized.Save(output, ImageFormat.Jpeg);
+                    width = size;
+                    height = Convert.ToInt32(image.Height * size / (double)image.Width);
+                }
+                else
+                {
+                    width = Convert.ToInt32(image.Width * size / (double)image.Height);
+                    height = size;
+                }
+                var resized = new Bitmap(width, height);
+                using (var graphics = Graphics.FromImage(resized))
+                {
+                    graphics.CompositingQuality = CompositingQuality.HighSpeed;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.CompositingMode = CompositingMode.SourceCopy;
+                    graphics.DrawImage(image, 0, 0, width, height);
+                    // Save the results
+                    using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SystemDrawing)))
+                    {
+                        resized.Save(output, ImageFormat.Jpeg);
+                    }
                 }
             }
         }
 
-        [Benchmark]
+        [Benchmark(Description = "ImageMagick Resize")]
         public void MagickResizeBenchmark()
         {
             foreach (var image in _images)

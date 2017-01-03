@@ -3,12 +3,13 @@ using System;
 
 namespace ImageProcessing
 {
+    using System.Reflection;
+
     public class Program
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<ImageResizingBenchmarks>();
-            Console.WriteLine(summary);
+            new BenchmarkSwitcher(typeof(Program).GetTypeInfo().Assembly).Run(args);
         }
     }
 }
