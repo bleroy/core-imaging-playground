@@ -1,23 +1,22 @@
 ﻿using BenchmarkDotNet.Attributes;
 using ImageSharp;
+using ImageSharp.Formats;
 using ImageMagick;
+
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 
 using ImageSharpImage = ImageSharp.Image;
 using ImageSharpSize = ImageSharp.Size;
 using SystemDrawingImage = System.Drawing.Image;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ImageProcessing
 {
-    using System;
-
-    using ImageSharp.Formats;
-
     public class LoadResizeSave
     {
         const int ThumbnailSize = 150;
@@ -63,7 +62,7 @@ namespace ImageProcessing
                 + Path.GetExtension(inputPath));
         }
 
-        [Benchmark(Description = "ImageSharp Resize")]
+        [Benchmark(Description = "ImageSharp Load, Resize, Save")]
         public void ImageSharpBenchmark()
         {
             foreach (var image in _images)
@@ -91,7 +90,7 @@ namespace ImageProcessing
             }
         }
 
-        [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
+        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save")]
         public void SystemDrawingResizeBenchmark()
         {
             foreach (var image in _images)
@@ -131,7 +130,7 @@ namespace ImageProcessing
             }
         }
 
-        [Benchmark(Description = "ImageMagick Resize")]
+        [Benchmark(Description = "ImageMagick Load, Resize, Save")]
         public void MagickResizeBenchmark()
         {
             foreach (var image in _images)

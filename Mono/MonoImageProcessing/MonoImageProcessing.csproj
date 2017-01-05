@@ -63,7 +63,8 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ImageResizingBenchmarks.cs" />
+    <Compile Include="LoadResizeSave.cs" />
+    <Compile Include="Resize.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

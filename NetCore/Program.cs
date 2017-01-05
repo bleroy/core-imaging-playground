@@ -1,8 +1,8 @@
 ﻿using BenchmarkDotNet.Running;
+using System.Reflection;
 
 namespace ImageProcessing
 {
-    using System.Reflection;
 
     public class Program
     {

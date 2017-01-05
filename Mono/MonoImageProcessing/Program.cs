@@ -1,14 +1,13 @@
-﻿using System;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
+using System.Reflection;
 
 namespace MonoImageProcessing
 {
-    class MainClass
+    class Program
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<ImageResizingBenchmarks>();
-            Console.WriteLine(summary);
+            new BenchmarkSwitcher(typeof(Program).GetTypeInfo().Assembly).Run(args);
         }
     }
 }

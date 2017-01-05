@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using BenchmarkDotNet.Attributes;
 
 using ImageMagick;
-
 using ImageSharp;
 using ImageSharp.Formats;
 

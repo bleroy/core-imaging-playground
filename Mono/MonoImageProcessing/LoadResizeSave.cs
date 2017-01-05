@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace MonoImageProcessing
 {
-    public class ImageResizingBenchmarks
+    public class LoadResizeSave
     {
         const int ThumbnailSize = 150;
         const string SkiaSharp = nameof(SkiaSharp);
@@ -14,7 +14,7 @@ namespace MonoImageProcessing
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
 
-        public ImageResizingBenchmarks()
+        public LoadResizeSave()
         {
             // Find the closest images directory
             var imageDirectory = Path.GetFullPath(".");
@@ -46,16 +46,16 @@ namespace MonoImageProcessing
                 + Path.GetExtension(inputPath));
         }
 
-        [Benchmark]
-        public void SkiaBenchmark()
+        [Benchmark(Description = "SkiaSharp Load, Resize, Save")]
+        public void SkiaLoadResizeSaveBenchmark()
         {
             foreach (var image in _images)
             {
-                SkiaResize(image, ThumbnailSize, _outputDirectory);
+                SkiaLoadResizeSave(image, ThumbnailSize, _outputDirectory);
             }
         }
 
-        public static void SkiaResize(string path, int size, string outputDirectory)
+        public static void SkiaLoadResizeSave(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
             {
