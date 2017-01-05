@@ -16,28 +16,30 @@ namespace ImageProcessing
 {
     public class Resize
     {
+        const int Width = 1280;
+        const int Height = 853;
+        const int ResizedWidth = 150;
+        const int ResizedHeight = 99;
+
         public Resize()
         {
-            // Add ImageSharp Formats
+            // Add ImageSharp JPG Format
             Configuration.Default.AddImageFormat(new JpegFormat());
-            Configuration.Default.AddImageFormat(new PngFormat());
-            Configuration.Default.AddImageFormat(new BmpFormat());
-            Configuration.Default.AddImageFormat(new GifFormat());
         }
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
         public Size ResizeSystemDrawing()
         {
-            using (Bitmap source = new Bitmap(2000, 2000))
+            using (Bitmap source = new Bitmap(Width, Height))
             {
-                using (Bitmap destination = new Bitmap(400, 400))
+                using (Bitmap destination = new Bitmap(ResizedWidth, ResizedHeight))
                 {
                     using (Graphics graphics = Graphics.FromImage(destination))
                     {
                         graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                         graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
                         graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                        graphics.DrawImage(source, 0, 0, 400, 400);
+                        graphics.DrawImage(source, 0, 0, ResizedWidth, ResizedHeight);
                     }
 
                     return destination.Size;
@@ -48,16 +50,16 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageSharp Resize")]
         public ImageSharpSize ResizeImageSharp()
         {
-            ImageSharpImage image = new ImageSharpImage(2000, 2000);
-            image.Resize(400, 400);
-            return new ImageSharpSize(400, 400);
+            ImageSharpImage image = new ImageSharpImage(Width, Height);
+            image.Resize(ResizedWidth, ResizedHeight);
+            return new ImageSharpSize(ResizedWidth, ResizedHeight);
         }
 
         [Benchmark(Description = "ImageMagick Resize")]
         public MagickGeometry MagickResize()
         {
-            MagickGeometry size = new MagickGeometry(400, 400);
-            using (MagickImage image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), 2000, 2000))
+            MagickGeometry size = new MagickGeometry(ResizedWidth, ResizedHeight);
+            using (MagickImage image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), Width, Height))
             {
                 image.Resize(size);
             }
