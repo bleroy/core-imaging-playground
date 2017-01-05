@@ -18,5 +18,9 @@
       },
       "imports": "dnxcore50"
     }
+  },
+  "dependencies": {
+    "runtime.linux-x64.CoreCompat.System.Drawing": "1.0.0-beta009",
+    "runtime.osx.10.10-x64.CoreCompat.System.Drawing": "1.0.1-beta004"
   }
 }
