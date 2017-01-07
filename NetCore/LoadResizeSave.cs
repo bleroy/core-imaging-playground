@@ -75,7 +75,7 @@ namespace ImageProcessing
         {
             using (var input = File.OpenRead(path))
             {
-                using (var output = File.OpenWrite(OutputPath(path, outputDirectory, ImageSharp)))
+                using (var output = File.Open(OutputPath(path, outputDirectory, ImageSharp), FileMode.Create))
                 {
                     // Resize it to fit a 150x150 square
                     var image = new ImageSharpImage(input)
@@ -84,6 +84,7 @@ namespace ImageProcessing
                             Size = new ImageSharpSize(size, size),
                             Mode = ResizeMode.Max
                         });
+
                     // Save the results
                     image.Save(output);
                 }
@@ -122,7 +123,7 @@ namespace ImageProcessing
                     graphics.CompositingMode = CompositingMode.SourceCopy;
                     graphics.DrawImage(image, 0, 0, width, height);
                     // Save the results
-                    using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SystemDrawing)))
+                    using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
                     {
                         resized.Save(output, ImageFormat.Jpeg);
                     }
