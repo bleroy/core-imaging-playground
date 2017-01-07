@@ -85,6 +85,9 @@ namespace ImageProcessing
                             Mode = ResizeMode.Max
                         });
 
+                    // Reduce the size of the file
+                    image.ExifProfile = null;
+
                     // Save the results
                     image.Save(output);
                 }
