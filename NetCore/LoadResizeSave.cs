@@ -27,7 +27,7 @@ namespace ImageProcessing
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
-        readonly ImageCodecInfo _encoder;
+        readonly ImageCodecInfo _codec;
         readonly EncoderParameters _encoderParameters;
 
         public LoadResizeSave()
@@ -36,10 +36,10 @@ namespace ImageProcessing
             Configuration.Default.AddImageFormat(new JpegFormat());
 
             // Initialize the encoder and parameters for System.Drawing
-            Encoder encoder = Encoder.Quality;
+            var qualityParamId = Encoder.Quality;
             _encoderParameters = new EncoderParameters(1);
-            _encoderParameters.Param[0] = new EncoderParameter(encoder, Quality);
-            _encoder = ImageCodecInfo.GetImageDecoders().FirstOrDefault(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+            _encoderParameters.Param[0] = new EncoderParameter(qualityParamId, Quality);
+            _codec = ImageCodecInfo.GetImageDecoders().FirstOrDefault(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
             // Find the closest images directory
             var imageDirectory = Path.GetFullPath(".");
@@ -80,7 +80,7 @@ namespace ImageProcessing
             }
         }
 
-        public static void ImageSharpResize(string path, int size, string outputDirectory)
+        static void ImageSharpResize(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
             {
@@ -115,7 +115,7 @@ namespace ImageProcessing
             }
         }
 
-        public void SystemDrawingResize(string path, int size, string outputDirectory)
+        void SystemDrawingResize(string path, int size, string outputDirectory)
         {
             using (var image = new Bitmap(SystemDrawingImage.FromFile(path)))
             {
@@ -140,7 +140,7 @@ namespace ImageProcessing
                     // Save the results
                     using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
                     {
-                        resized.Save(output, _encoder, _encoderParameters);
+                        resized.Save(output, _codec, _encoderParameters);
                     }
                 }
             }
@@ -155,7 +155,7 @@ namespace ImageProcessing
             }
         }
 
-        public static void MagickResize(string path, int size, string outputDirectory)
+        static void MagickResize(string path, int size, string outputDirectory)
         {
             using (var image = new MagickImage(path))
             {
