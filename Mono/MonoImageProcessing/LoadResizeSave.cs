@@ -9,6 +9,7 @@ namespace MonoImageProcessing
     public class LoadResizeSave
     {
         const int ThumbnailSize = 150;
+        const int Quality = 75;
         const string SkiaSharp = nameof(SkiaSharp);
 
         readonly IEnumerable<string> _images;
@@ -55,7 +56,7 @@ namespace MonoImageProcessing
             }
         }
 
-        public static void SkiaLoadResizeSave(string path, int size, string outputDirectory)
+        static void SkiaLoadResizeSave(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
             {
@@ -85,7 +86,7 @@ namespace MonoImageProcessing
                     using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharp)))
                     {
                         surface.Snapshot()
-                               .Encode(SKImageEncodeFormat.Jpeg, 85)
+                               .Encode(SKImageEncodeFormat.Jpeg, Quality)
                                .SaveTo(output);
                     }
                 }

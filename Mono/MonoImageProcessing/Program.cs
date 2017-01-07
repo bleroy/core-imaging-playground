@@ -7,6 +7,7 @@ namespace MonoImageProcessing
     {
         public static void Main(string[] args)
         {
+            //new LoadResizeSave().SkiaLoadResizeSaveBenchmark();
             new BenchmarkSwitcher(typeof(Program).GetTypeInfo().Assembly).Run(args);
         }
     }
