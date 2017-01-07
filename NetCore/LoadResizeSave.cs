@@ -20,17 +20,26 @@ namespace ImageProcessing
     public class LoadResizeSave
     {
         const int ThumbnailSize = 150;
+        const int Quality = 75;
         const string ImageSharp = nameof(ImageSharp);
         const string SystemDrawing = nameof(SystemDrawing);
         const string MagickNET = nameof(MagickNET);
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
+        readonly ImageCodecInfo _encoder;
+        readonly EncoderParameters _encoderParameters;
 
         public LoadResizeSave()
         {
             // Add ImageSharp Formats
             Configuration.Default.AddImageFormat(new JpegFormat());
+
+            // Initialize the encoder and parameters for System.Drawing
+            Encoder encoder = Encoder.Quality;
+            _encoderParameters = new EncoderParameters(1);
+            _encoderParameters.Param[0] = new EncoderParameter(encoder, Quality);
+            _encoder = ImageCodecInfo.GetImageDecoders().FirstOrDefault(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
             // Find the closest images directory
             var imageDirectory = Path.GetFullPath(".");
@@ -75,7 +84,7 @@ namespace ImageProcessing
         {
             using (var input = File.OpenRead(path))
             {
-                using (var output = File.OpenWrite(OutputPath(path, outputDirectory, ImageSharp)))
+                using (var output = File.Open(OutputPath(path, outputDirectory, ImageSharp), FileMode.Create))
                 {
                     // Resize it to fit a 150x150 square
                     var image = new ImageSharpImage(input)
@@ -84,6 +93,13 @@ namespace ImageProcessing
                             Size = new ImageSharpSize(size, size),
                             Mode = ResizeMode.Max
                         });
+
+                    // Reduce the size of the file
+                    image.ExifProfile = null;
+
+                    // Set the quality
+                    image.Quality = Quality;
+
                     // Save the results
                     image.Save(output);
                 }
@@ -99,7 +115,7 @@ namespace ImageProcessing
             }
         }
 
-        public static void SystemDrawingResize(string path, int size, string outputDirectory)
+        public void SystemDrawingResize(string path, int size, string outputDirectory)
         {
             using (var image = new Bitmap(SystemDrawingImage.FromFile(path)))
             {
@@ -122,9 +138,9 @@ namespace ImageProcessing
                     graphics.CompositingMode = CompositingMode.SourceCopy;
                     graphics.DrawImage(image, 0, 0, width, height);
                     // Save the results
-                    using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SystemDrawing)))
+                    using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
                     {
-                        resized.Save(output, ImageFormat.Jpeg);
+                        resized.Save(output, _encoder, _encoderParameters);
                     }
                 }
             }
@@ -145,8 +161,13 @@ namespace ImageProcessing
             {
                 // Resize it to fit a 150x150 square
                 image.Resize(size, size);
+
                 // Reduce the size of the file
                 image.Strip();
+
+                // Set the quality
+                image.Quality = Quality;
+
                 // Save the results
                 image.Write(OutputPath(path, outputDirectory, MagickNET));
             }
