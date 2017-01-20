@@ -1,19 +1,16 @@
 ﻿using BenchmarkDotNet.Attributes;
 using ImageSharp;
 using ImageSharp.Formats;
+using ImageSharp.Processing;
 using ImageMagick;
+using FreeImageAPI;
 
-using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 
 using ImageSharpImage = ImageSharp.Image;
 using ImageSharpSize = ImageSharp.Size;
-using SystemDrawingImage = System.Drawing.Image;
 
 namespace ImageProcessing
 {
@@ -24,22 +21,16 @@ namespace ImageProcessing
         const string ImageSharp = nameof(ImageSharp);
         const string SystemDrawing = nameof(SystemDrawing);
         const string MagickNET = nameof(MagickNET);
+        const string FreeImage = nameof(FreeImage);
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
-        readonly ImageCodecInfo _codec;
-        readonly EncoderParameters _encoderParameters;
 
         public LoadResizeSave()
         {
+            OpenCL.IsEnabled = false;
             // Add ImageSharp Formats
             Configuration.Default.AddImageFormat(new JpegFormat());
-
-            // Initialize the encoder and parameters for System.Drawing
-            var qualityParamId = Encoder.Quality;
-            _encoderParameters = new EncoderParameters(1);
-            _encoderParameters.Param[0] = new EncoderParameter(qualityParamId, Quality);
-            _codec = ImageCodecInfo.GetImageDecoders().FirstOrDefault(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
             // Find the closest images directory
             var imageDirectory = Path.GetFullPath(".");
@@ -71,7 +62,7 @@ namespace ImageProcessing
                 + Path.GetExtension(inputPath));
         }
 
-        [Benchmark(Description = "ImageSharp Load, Resize, Save")]
+        //[Benchmark(Description = "ImageSharp Load, Resize, Save")]
         public void ImageSharpBenchmark()
         {
             foreach (var image in _images)
@@ -106,47 +97,7 @@ namespace ImageProcessing
             }
         }
 
-        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save")]
-        public void SystemDrawingResizeBenchmark()
-        {
-            foreach (var image in _images)
-            {
-                SystemDrawingResize(image, ThumbnailSize, _outputDirectory);
-            }
-        }
-
-        void SystemDrawingResize(string path, int size, string outputDirectory)
-        {
-            using (var image = new Bitmap(SystemDrawingImage.FromFile(path)))
-            {
-                int width, height;
-                if (image.Width > image.Height)
-                {
-                    width = size;
-                    height = Convert.ToInt32(image.Height * size / (double)image.Width);
-                }
-                else
-                {
-                    width = Convert.ToInt32(image.Width * size / (double)image.Height);
-                    height = size;
-                }
-                var resized = new Bitmap(width, height);
-                using (var graphics = Graphics.FromImage(resized))
-                {
-                    graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    graphics.CompositingMode = CompositingMode.SourceCopy;
-                    graphics.DrawImage(image, 0, 0, width, height);
-                    // Save the results
-                    using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
-                    {
-                        resized.Save(output, _codec, _encoderParameters);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(Description = "ImageMagick Load, Resize, Save")]
+        //[Benchmark(Description = "ImageMagick Load, Resize, Save")]
         public void MagickResizeBenchmark()
         {
             foreach (var image in _images)
@@ -170,6 +121,36 @@ namespace ImageProcessing
 
                 // Save the results
                 image.Write(OutputPath(path, outputDirectory, MagickNET));
+            }
+        }
+
+        [Benchmark(Description = "ImageFree Load, Resize, Save")]
+        public void FreeImageResizeBenchmark()
+        {
+            foreach (var image in _images)
+            {
+                FreeImageResize(image, ThumbnailSize, _outputDirectory);
+            }
+        }
+
+        static void FreeImageResize(string path, int size, string outputDirectory)
+        {
+            using (var original = new FreeImageBitmap(path))
+            {
+                int width, height;
+                if (original.Width > original.Height)
+                {
+                    width = size;
+                    height = original.Height * size / original.Width;
+                }
+                else
+                {
+                    width = original.Width * size / original.Height;
+                    height = size;
+                }
+                original.Rescale(width, height, FREE_IMAGE_FILTER.FILTER_BICUBIC);
+                // JPEG_QUALITYGOOD is 75 JPEG.
+                original.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG, FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD);
             }
         }
     }

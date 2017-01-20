@@ -12,11 +12,9 @@
           "version": "1.0.3"
         },
         "BenchmarkDotNet": "0.10.0",
-        "ImageSharp": "1.0.0-alpha1-00054",
-        "ImageSharp.Formats.Jpeg": "1.0.0-alpha1-00034",
-        "ImageSharp.Processing": "1.0.0-alpha1-00034",
-        "Magick.NET.Core-Q8": "7.0.4.400",
-        "FreeImage-dotnet-core": "4.0.0"
+        "CoreCompat.System.Drawing": "1.0.0-beta006",
+        "runtime.linux-x64.CoreCompat.System.Drawing": "1.0.0-beta009",
+        "runtime.osx.10.10-x64.CoreCompat.System.Drawing": "1.0.1-beta004"
       },
       "imports": "dnxcore50"
     }
