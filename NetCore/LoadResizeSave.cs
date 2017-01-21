@@ -135,7 +135,7 @@ namespace ImageProcessing
 
         static void FreeImageResize(string path, int size, string outputDirectory)
         {
-            using (var original = new FreeImageBitmap(path))
+            using (var original = FreeImageBitmap.FromFile(path))
             {
                 int width, height;
                 if (original.Width > original.Height)
@@ -148,9 +148,12 @@ namespace ImageProcessing
                     width = original.Width * size / original.Height;
                     height = size;
                 }
-                original.Rescale(width, height, FREE_IMAGE_FILTER.FILTER_BICUBIC);
+                var resized = new FreeImageBitmap(original, width, height);
                 // JPEG_QUALITYGOOD is 75 JPEG.
-                original.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG, FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD);
+                // JPEG_BASELINE strips metadata (EXIF, etc.)
+               resized.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
+                   FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
+                   FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
             }
         }
     }
