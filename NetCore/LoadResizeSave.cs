@@ -62,7 +62,7 @@ namespace ImageProcessing
                 + Path.GetExtension(inputPath));
         }
 
-        //[Benchmark(Description = "ImageSharp Load, Resize, Save")]
+        [Benchmark(Description = "ImageSharp Load, Resize, Save")]
         public void ImageSharpBenchmark()
         {
             foreach (var image in _images)
@@ -97,7 +97,7 @@ namespace ImageProcessing
             }
         }
 
-        //[Benchmark(Description = "ImageMagick Load, Resize, Save")]
+        [Benchmark(Description = "ImageMagick Load, Resize, Save")]
         public void MagickResizeBenchmark()
         {
             foreach (var image in _images)
