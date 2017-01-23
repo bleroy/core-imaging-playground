@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Running;
+﻿using System;
+using BenchmarkDotNet.Running;
 using System.Reflection;
 
 namespace MonoImageProcessing
@@ -9,6 +10,7 @@ namespace MonoImageProcessing
         {
             //new LoadResizeSave().SkiaLoadResizeSaveBenchmark();
             new BenchmarkSwitcher(typeof(Program).GetTypeInfo().Assembly).Run(args);
+            Console.Read();
         }
     }
 }
