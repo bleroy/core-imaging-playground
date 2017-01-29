@@ -4,6 +4,7 @@ using ImageSharp.Formats;
 using ImageSharp.Processing;
 using ImageMagick;
 using FreeImageAPI;
+using PhotoSauce.MagicScaler;
 
 using System.Collections.Generic;
 using System.IO;
@@ -22,6 +23,7 @@ namespace ImageProcessing
         const string SystemDrawing = nameof(SystemDrawing);
         const string MagickNET = nameof(MagickNET);
         const string FreeImage = nameof(FreeImage);
+        const string MagicScaler = nameof(MagicScaler);
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
@@ -154,6 +156,32 @@ namespace ImageProcessing
                resized.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
                    FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
                    FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
+            }
+        }
+
+        [Benchmark(Description = "MagicScaler Load, Resize, Save")]
+        public void MagicScalerResizeBenchmark()
+        {
+            foreach (var image in _images)
+            {
+                MagicScalerResize(image, ThumbnailSize, _outputDirectory);
+            }
+        }
+
+        static void MagicScalerResize(string path, int size, string outputDirectory)
+        {
+            var settings = new ProcessImageSettings() {
+                Width = size,
+                Height = size,
+                ResizeMode = CropScaleMode.Max,
+                SaveFormat = FileFormat.Jpeg,
+                JpegQuality = Quality,
+                JpegSubsampleMode = ChromaSubsampleMode.Subsample420
+            };
+
+            using (var output = new FileStream(OutputPath(path, outputDirectory, MagicScaler), FileMode.Create))
+            {
+                MagicImageProcessor.ProcessImage(path, output, settings);
             }
         }
     }
