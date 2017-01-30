@@ -28,12 +28,15 @@ namespace ImageProcessing
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
 
-        public LoadResizeSave()
+        static LoadResizeSave()
         {
             OpenCL.IsEnabled = false;
             // Add ImageSharp Formats
             Configuration.Default.AddImageFormat(new JpegFormat());
+        }
 
+        public LoadResizeSave()
+        {
             // Find the closest images directory
             var imageDirectory = Path.GetFullPath(".");
             while (!Directory.Exists(Path.Combine(imageDirectory, "images")))
@@ -73,7 +76,7 @@ namespace ImageProcessing
             }
         }
 
-        static void ImageSharpResize(string path, int size, string outputDirectory)
+        internal static void ImageSharpResize(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
             {
@@ -108,7 +111,7 @@ namespace ImageProcessing
             }
         }
 
-        static void MagickResize(string path, int size, string outputDirectory)
+        internal static void MagickResize(string path, int size, string outputDirectory)
         {
             using (var image = new MagickImage(path))
             {
@@ -135,7 +138,7 @@ namespace ImageProcessing
             }
         }
 
-        static void FreeImageResize(string path, int size, string outputDirectory)
+        internal static void FreeImageResize(string path, int size, string outputDirectory)
         {
             using (var original = FreeImageBitmap.FromFile(path))
             {
@@ -168,7 +171,7 @@ namespace ImageProcessing
             }
         }
 
-        static void MagicScalerResize(string path, int size, string outputDirectory)
+        internal static void MagicScalerResize(string path, int size, string outputDirectory)
         {
             var settings = new ProcessImageSettings() {
                 Width = size,

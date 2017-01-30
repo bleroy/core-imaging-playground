@@ -16,23 +16,24 @@ namespace ImageProcessing
     {
         const int ThumbnailSize = 150;
         const int Quality = 75;
-        const string ImageSharp = nameof(ImageSharp);
         const string SystemDrawing = nameof(SystemDrawing);
-        const string MagickNET = nameof(MagickNET);
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
-        readonly ImageCodecInfo _codec;
-        readonly EncoderParameters _encoderParameters;
+        static readonly ImageCodecInfo _codec;
+        static readonly EncoderParameters _encoderParameters;
 
-        public LoadResizeSave()
+        static LoadResizeSave()
         {
             // Initialize the encoder and parameters for System.Drawing
             var qualityParamId = Encoder.Quality;
             _encoderParameters = new EncoderParameters(1);
             _encoderParameters.Param[0] = new EncoderParameter(qualityParamId, Quality);
             _codec = ImageCodecInfo.GetImageDecoders().FirstOrDefault(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+        }
 
+        public LoadResizeSave()
+        {
             // Find the closest images directory
             var imageDirectory = Path.GetFullPath(".");
             while (!Directory.Exists(Path.Combine(imageDirectory, "images")))
@@ -72,7 +73,7 @@ namespace ImageProcessing
             }
         }
 
-        void SystemDrawingResize(string path, int size, string outputDirectory)
+        internal static void SystemDrawingResize(string path, int size, string outputDirectory)
         {
             using (var image = SystemDrawingImage.FromFile(path, true))
             {
