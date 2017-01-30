@@ -74,7 +74,7 @@ namespace ImageProcessing
 
         void SystemDrawingResize(string path, int size, string outputDirectory)
         {
-            using (var image = new Bitmap(SystemDrawingImage.FromFile(path)))
+            using (var image = SystemDrawingImage.FromFile(path, true))
             {
                 int width, height;
                 if (image.Width > image.Height)
@@ -89,11 +89,14 @@ namespace ImageProcessing
                 }
                 var resized = new Bitmap(width, height);
                 using (var graphics = Graphics.FromImage(resized))
+                using (var attributes = new ImageAttributes())
                 {
+                    attributes.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
                     graphics.CompositingQuality = CompositingQuality.HighSpeed;
                     graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     graphics.CompositingMode = CompositingMode.SourceCopy;
-                    graphics.DrawImage(image, 0, 0, width, height);
+                    graphics.DrawImage(image, Rectangle.FromLTRB(0, 0, width, height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
                     // Save the results
                     using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
                     {

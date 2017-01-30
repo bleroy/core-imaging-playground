@@ -5,18 +5,19 @@
     "emitEntryPoint": true
   },
   "frameworks": {
-    "netcoreapp1.0": {
+    "netcoreapp1.1": {
       "dependencies": {
         "Microsoft.NETCore.App": {
           "type": "platform",
-          "version": "1.0.3"
+          "version": "1.1.0"
         },
-        "BenchmarkDotNet": "0.10.0",
+        "BenchmarkDotNet": "0.10.2",
         "ImageSharp": "1.0.0-alpha1-00054",
         "ImageSharp.Formats.Jpeg": "1.0.0-alpha1-00034",
         "ImageSharp.Processing": "1.0.0-alpha1-00034",
         "Magick.NET.Core-Q8": "7.0.4.400",
-        "FreeImage-dotnet-core": "4.0.0"
+        "FreeImage-dotnet-core": "4.0.0",
+        "PhotoSauce.MagicScaler": "0.7.0-alpha"
       },
       "imports": "dnxcore50"
     }

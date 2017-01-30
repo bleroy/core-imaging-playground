@@ -13,6 +13,7 @@ namespace ImageProcessing
             //lrs.ImageSharpBenchmark();
             //lrs.MagickResizeBenchmark();
             //lrs.FreeImageResizeBenchmark();
+            //lrs.MagicScalerResizeBenchmark();
             new BenchmarkSwitcher(typeof(Program).GetTypeInfo().Assembly).Run(args);
         }
     }
