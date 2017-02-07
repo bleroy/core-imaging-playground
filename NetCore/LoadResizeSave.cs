@@ -83,21 +83,23 @@ namespace ImageProcessing
                 using (var output = File.Open(OutputPath(path, outputDirectory, ImageSharp), FileMode.Create))
                 {
                     // Resize it to fit a 150x150 square
-                    var image = new ImageSharpImage(input)
-                        .Resize(new ResizeOptions
+                    using (var image = new ImageSharpImage(input))
+                    {
+                        image.Resize(new ResizeOptions
                         {
                             Size = new ImageSharpSize(size, size),
                             Mode = ResizeMode.Max
                         });
 
-                    // Reduce the size of the file
-                    image.ExifProfile = null;
+                        // Reduce the size of the file
+                        image.ExifProfile = null;
 
-                    // Set the quality
-                    image.Quality = Quality;
+                        // Set the quality
+                        image.Quality = Quality;
 
-                    // Save the results
-                    image.Save(output);
+                        // Save the results
+                        image.Save(output);
+                    }
                 }
             }
         }

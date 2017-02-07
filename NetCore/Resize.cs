@@ -27,8 +27,10 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageSharp Resize")]
         public ImageSharpSize ResizeImageSharp()
         {
-            ImageSharpImage image = new ImageSharpImage(Width, Height);
-            image.Resize(ResizedWidth, ResizedHeight);
+            using (ImageSharpImage image = new ImageSharpImage(Width, Height))
+            {
+                image.Resize(ResizedWidth, ResizedHeight);
+            }
             return new ImageSharpSize(ResizedWidth, ResizedHeight);
         }
 
