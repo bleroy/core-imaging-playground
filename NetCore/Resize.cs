@@ -5,6 +5,7 @@ using ImageSharp;
 using ImageSharp.Formats;
 using FreeImageAPI;
 using SkiaSharp;
+using OpenCvSharp;
 
 using ImageSharpImage = ImageSharp.Image;
 using ImageSharpSize = ImageSharp.Size;
@@ -76,6 +77,13 @@ namespace ImageProcessing
             var original = new SKBitmap(Width, Height);
             var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKBitmapResizeMethod.Lanczos3);
             var image = SKImage.FromBitmap(resized);
+        }
+
+        [Benchmark(Description = "OpenCvSharp Resize")]
+        public void OpenCvSharpResizeBenchmark()
+        {
+            var original = new Mat(Height, Width, MatType.CV_8U);
+            var resized = original.Resize(new OpenCvSharp.Size(ResizedWidth, ResizedHeight), 0, 0, InterpolationFlags.Lanczos4);
         }
     }
 }

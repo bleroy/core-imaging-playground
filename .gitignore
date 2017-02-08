@@ -8,3 +8,4 @@ output
 project.lock.json
 BenchmarkDotNet.Artifacts
 binaries
+BDN.Generated

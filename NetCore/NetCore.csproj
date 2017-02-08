@@ -19,6 +19,7 @@
     <PackageReference Include="ImageSharp.Processing" Version="1.0.0-alpha2-00038" />
     <PackageReference Include="Magick.NET.Core-Q8" Version="7.0.4.700" />
     <PackageReference Include="FreeImage-dotnet-core" Version="4.0.0" />
+    <PackageReference Include="OpenCvSharp3-AnyCPU" Version="3.2.0.20170205-beta" />
     <PackageReference Include="PhotoSauce.MagicScaler" Version="0.7.0-alpha" />
     <PackageReference Include="SkiaSharp" Version="1.56.1-beta" />
   </ItemGroup>
