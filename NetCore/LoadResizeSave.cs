@@ -34,8 +34,6 @@ namespace ImageProcessing
         static LoadResizeSave()
         {
             OpenCL.IsEnabled = false;
-            // Add ImageSharp Formats
-            Configuration.Default.AddImageFormat(new JpegFormat());
         }
 
         public LoadResizeSave()
@@ -86,7 +84,7 @@ namespace ImageProcessing
                 using (var output = File.Open(OutputPath(path, outputDirectory, ImageSharp), FileMode.Create))
                 {
                     // Resize it to fit a 150x150 square
-                    using (var image = new ImageSharpImage(input))
+                    using (var image = ImageSharpImage.Load(input))
                     {
                         image.Resize(new ResizeOptions
                         {
@@ -233,7 +231,7 @@ namespace ImageProcessing
                         using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpCanvas)))
                         {
                             surface.Snapshot()
-                                .Encode(SKImageEncodeFormat.Jpeg, Quality)
+                                .Encode(SKEncodedImageFormat.Jpeg, Quality)
                                 .SaveTo(output);
                         }
                     }
@@ -279,7 +277,7 @@ namespace ImageProcessing
                             {
                                 using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpBitmap)))
                                 {
-                                    image.Encode(SKImageEncodeFormat.Jpeg, Quality)
+                                    image.Encode(SKEncodedImageFormat.Jpeg, Quality)
                                         .SaveTo(output);
                                 }
                             }

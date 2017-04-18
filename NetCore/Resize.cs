@@ -21,8 +21,6 @@ namespace ImageProcessing
         public Resize()
         {
             OpenCL.IsEnabled = false;
-            // Add ImageSharp JPG Format
-            Configuration.Default.AddImageFormat(new JpegFormat());
         }
 
         [Benchmark(Description = "ImageSharp Resize")]
