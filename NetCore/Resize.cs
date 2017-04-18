@@ -4,6 +4,7 @@ using ImageMagick;
 using ImageSharp;
 using ImageSharp.Formats;
 using FreeImageAPI;
+using SkiaSharp;
 
 using ImageSharpImage = ImageSharp.Image;
 using ImageSharpSize = ImageSharp.Size;
@@ -27,7 +28,7 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageSharp Resize")]
         public ImageSharpSize ResizeImageSharp()
         {
-            using (ImageSharpImage image = new ImageSharpImage(Width, Height))
+            using (var image = new ImageSharpImage(Width, Height))
             {
                 image.Resize(ResizedWidth, ResizedHeight);
             }
@@ -53,6 +54,28 @@ namespace ImageProcessing
             {
                 image.Rescale(ResizedWidth, ResizedHeight, FREE_IMAGE_FILTER.FILTER_BICUBIC);
             }
+        }
+
+        [Benchmark(Description = "SkiaSharp Canvas Resize")]
+        public void SkiaCanvasResizeBenchmark()
+        {
+            var original = new SKBitmap(Width, Height);
+            var surface = SKSurface.Create(new SKImageInfo(ResizedWidth, ResizedHeight));
+            var canvas = surface.Canvas;
+            var scale = (float)ResizedWidth / Width;
+            canvas.Scale(scale);
+            var paint = new SKPaint();
+            paint.FilterQuality = SKFilterQuality.High;
+            canvas.DrawBitmap(original, 0, 0, paint);
+            canvas.Flush();
+        }
+
+        [Benchmark(Description = "SkiaSharp Bitmap Resize")]
+        public void SkiaBitmapResizeBenchmark()
+        {
+            var original = new SKBitmap(Width, Height);
+            var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKBitmapResizeMethod.Lanczos3);
+            var image = SKImage.FromBitmap(resized);
         }
     }
 }
