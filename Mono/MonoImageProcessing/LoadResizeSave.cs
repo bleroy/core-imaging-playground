@@ -88,7 +88,7 @@ namespace MonoImageProcessing
                         using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpCanvas)))
                         {
                             surface.Snapshot()
-                                .Encode(SKImageEncodeFormat.Jpeg, Quality)
+                                .Encode(SKEncodedImageFormat.Jpeg, Quality)
                                 .SaveTo(output);
                         }
                     }
@@ -134,7 +134,7 @@ namespace MonoImageProcessing
                             {
                                 using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpBitmap)))
                                 {
-                                    image.Encode(SKImageEncodeFormat.Jpeg, Quality)
+                                    image.Encode(SKEncodedImageFormat.Jpeg, Quality)
                                         .SaveTo(output);
                                 }
                             }
