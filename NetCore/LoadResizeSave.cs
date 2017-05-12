@@ -1,12 +1,12 @@
 ﻿using BenchmarkDotNet.Attributes;
 using ImageSharp;
-using ImageSharp.Formats;
 using ImageSharp.Processing;
 using ImageMagick;
 using FreeImageAPI;
 using PhotoSauce.MagicScaler;
 using SkiaSharp;
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -66,6 +66,23 @@ namespace ImageProcessing
                 Path.GetFileNameWithoutExtension(inputPath)
                 + "-" + postfix
                 + Path.GetExtension(inputPath));
+        }
+
+        static (int width, int height) ScaledSize(int inWidth, int inHeight, int outSize)
+        {
+            int width, height;
+            if (inWidth > inHeight)
+            {
+                width = outSize;
+                height = (int)Math.Round(inHeight * outSize / (double)inWidth);
+            }
+            else
+            {
+                width = (int)Math.Round(inWidth * outSize / (double)inHeight);
+                height = outSize;
+            }
+
+            return (width, height);
         }
 
         [Benchmark(Description = "ImageSharp Load, Resize, Save")]
@@ -145,18 +162,8 @@ namespace ImageProcessing
         {
             using (var original = FreeImageBitmap.FromFile(path))
             {
-                int width, height;
-                if (original.Width > original.Height)
-                {
-                    width = size;
-                    height = original.Height * size / original.Width;
-                }
-                else
-                {
-                    width = original.Width * size / original.Height;
-                    height = size;
-                }
-                var resized = new FreeImageBitmap(original, width, height);
+                var scaled = ScaledSize(original.Width, original.Height, size);
+                var resized = new FreeImageBitmap(original, scaled.width, scaled.height);
                 // JPEG_QUALITYGOOD is 75 JPEG.
                 // JPEG_BASELINE strips metadata (EXIF, etc.)
                resized.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
@@ -208,20 +215,10 @@ namespace ImageProcessing
                 {
                     using (var original = SKBitmap.Decode(inputStream))
                     {
-                        int width, height;
-                        if (original.Width > original.Height)
-                        {
-                            width = size;
-                            height = original.Height * size / original.Width;
-                        }
-                        else
-                        {
-                            width = original.Width * size / original.Height;
-                            height = size;
-                        }
-                        var surface = SKSurface.Create(width, height, original.ColorType, original.AlphaType);
+                        var scaled = ScaledSize(original.Width, original.Height, size);
+                        var surface = SKSurface.Create(scaled.width, scaled.height, original.ColorType, original.AlphaType);
                         var canvas = surface.Canvas;
-                        var scale = (float)width / original.Width;
+                        var scale = (float)scaled.width / original.Width;
                         canvas.Scale(scale);
                         var paint = new SKPaint();
                         paint.FilterQuality = SKFilterQuality.High;
@@ -256,19 +253,8 @@ namespace ImageProcessing
                 {
                     using (var original = SKBitmap.Decode(inputStream))
                     {
-                        int width, height;
-                        if (original.Width > original.Height)
-                        {
-                            width = size;
-                            height = original.Height * size / original.Width;
-                        }
-                        else
-                        {
-                            width = original.Width * size / original.Height;
-                            height = size;
-                        }
-
-                        using (var resized = original.Resize(new SKImageInfo(width, height), SKBitmapResizeMethod.Lanczos3))
+                        var scaled = ScaledSize(original.Width, original.Height, size);
+                        using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), SKBitmapResizeMethod.Lanczos3))
                         {
                             if (resized == null)
                                 return;
