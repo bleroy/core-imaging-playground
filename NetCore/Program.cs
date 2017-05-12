@@ -35,6 +35,8 @@ namespace ImageProcessing
                     lrs.MagickResizeBenchmark();
                     lrs.FreeImageResizeBenchmark();
                     lrs.MagicScalerResizeBenchmark();
+                    lrs.SkiaBitmapLoadResizeSaveBenchmark();
+                    lrs.SkiaCanvasLoadResizeSaveBenchmark();
                     break;
                 case ConsoleKey.D1:
                     BenchmarkRunner.Run<Resize>(config);

@@ -207,7 +207,7 @@ namespace ImageProcessing
             }
         }
 
-        static void SkiaCanvasLoadResizeSave(string path, int size, string outputDirectory)
+        internal static void SkiaCanvasLoadResizeSave(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
             {
@@ -245,7 +245,7 @@ namespace ImageProcessing
             }
         }
 
-        static void SkiaBitmapLoadResizeSave(string path, int size, string outputDirectory)
+        internal static void SkiaBitmapLoadResizeSave(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
             {
