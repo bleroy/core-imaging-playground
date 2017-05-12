@@ -2,11 +2,12 @@
 
 using ImageMagick;
 using ImageSharp;
-using ImageSharp.Formats;
 using FreeImageAPI;
+using PhotoSauce.MagicScaler;
 using SkiaSharp;
+using System.Runtime.InteropServices;
 
-using ImageSharpImage = ImageSharp.Image;
+using ImageSharpImage = ImageSharp.Image<ImageSharp.Rgba32>;
 using ImageSharpSize = ImageSharp.Size;
 
 namespace ImageProcessing
@@ -45,12 +46,34 @@ namespace ImageProcessing
             return size;
         }
 
-        [Benchmark(Description = "FreeImage")]
+        [Benchmark(Description = "FreeImage Resize")]
         public void FreeImageResize()
         {
             using (var image = new FreeImageBitmap(Width, Height))
             {
                 image.Rescale(ResizedWidth, ResizedHeight, FREE_IMAGE_FILTER.FILTER_BICUBIC);
+            }
+        }
+
+        [Benchmark(Description = "MagicScaler Resize")]
+        public void MagicScalerResize()
+        {
+            // stride is width * bytes per pixel (3 for BGR), rounded up to the nearest multiple of 4
+            const uint stride = ResizedWidth * 3u + 3u & ~3u;
+            const uint bufflen = ResizedHeight * stride;
+
+            var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp);
+            var settings = new ProcessImageSettings {
+                Width = ResizedWidth,
+                Height = ResizedHeight
+            };
+
+            using (var pipeline = MagicImageProcessor.BuildPipeline(pixels, settings))
+            {
+                var rect = new System.Drawing.Rectangle(0, 0, ResizedWidth, ResizedHeight);
+                var buffer = Marshal.AllocHGlobal((int)bufflen);
+                pipeline.PixelSource.CopyPixels(rect, stride, bufflen, buffer);
+                Marshal.FreeHGlobal(buffer);
             }
         }
 

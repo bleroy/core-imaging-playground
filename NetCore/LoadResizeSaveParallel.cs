@@ -68,5 +68,21 @@ namespace ImageProcessing
                 LoadResizeSave.MagicScalerResize(image, ThumbnailSize, _outputDirectory);
             });
         }
+
+        [Benchmark(Description = "SkiaSharp Canvas Load, Resize, Save - Parallel")]
+        public void SkiaCanvasResizeBenchmark()
+        {
+            Parallel.ForEach(_images, image => {
+                LoadResizeSave.SkiaCanvasLoadResizeSave(image, ThumbnailSize, _outputDirectory);
+            });
+        }
+
+        [Benchmark(Description = "SkiaSharp Bitmap Load, Resize, Save - Parallel")]
+        public void SkiaBitmapResizeBenchmark()
+        {
+            Parallel.ForEach(_images, image => {
+                LoadResizeSave.SkiaBitmapLoadResizeSave(image, ThumbnailSize, _outputDirectory);
+            });
+        }
     }
 }
