@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.10.6" />
     <PackageReference Include="ImageSharp" Version="1.0.0-alpha9-00054" />
-    <PackageReference Include="Magick.NET.Core-Q8" Version="7.0.5.502" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.0.7.0" />
     <PackageReference Include="FreeImage-dotnet-core" Version="4.0.3" />
     <PackageReference Include="PhotoSauce.MagicScaler" Version="0.8.0-alpha1" />
     <PackageReference Include="SkiaSharp" Version="1.57.1" />
