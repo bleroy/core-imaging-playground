@@ -1,14 +1,14 @@
 ﻿using BenchmarkDotNet.Attributes;
 
 using ImageMagick;
-using ImageSharp;
+using SixLabors.ImageSharp;
 using FreeImageAPI;
 using PhotoSauce.MagicScaler;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 
-using ImageSharpImage = ImageSharp.Image<ImageSharp.Rgba32>;
-using ImageSharpSize = ImageSharp.Size;
+using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.Rgba32>;
+using ImageSharpSize = SixLabors.Primitives.Size;
 
 namespace ImageProcessing
 {
@@ -29,8 +29,9 @@ namespace ImageProcessing
         {
             using (var image = new ImageSharpImage(Width, Height))
             {
-                image.Resize(ResizedWidth, ResizedHeight);
+                image.Mutate(i => i.Resize(ResizedWidth, ResizedHeight));
             }
+            
             return new ImageSharpSize(ResizedWidth, ResizedHeight);
         }
 
@@ -63,7 +64,8 @@ namespace ImageProcessing
             const uint bufflen = ResizedHeight * stride;
 
             var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp);
-            var settings = new ProcessImageSettings {
+            var settings = new ProcessImageSettings
+            {
                 Width = ResizedWidth,
                 Height = ResizedHeight
             };

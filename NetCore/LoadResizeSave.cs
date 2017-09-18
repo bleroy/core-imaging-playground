@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
-using ImageSharp;
-using ImageSharp.Processing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using ImageMagick;
 using FreeImageAPI;
 using PhotoSauce.MagicScaler;
@@ -10,9 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-using ImageSharpImage = ImageSharp.Image;
-using ImageSharpSize = ImageSharp.Size;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using ImageSharpImage = SixLabors.ImageSharp.Image;
+using ImageSharpSize = SixLabors.Primitives.Size;
 
 namespace ImageProcessing
 {
@@ -27,6 +27,9 @@ namespace ImageProcessing
         const string MagicScaler = nameof(MagicScaler);
         const string SkiaSharpCanvas = nameof(SkiaSharpCanvas);
         const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
+
+        // Set the quality for ImagSharp
+        private static readonly JpegEncoder jpegEncoder = new JpegEncoder { Quality = Quality };
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
@@ -96,6 +99,7 @@ namespace ImageProcessing
 
         internal static void ImageSharpResize(string path, int size, string outputDirectory)
         {
+
             using (var input = File.OpenRead(path))
             {
                 using (var output = File.Open(OutputPath(path, outputDirectory, ImageSharp), FileMode.Create))
@@ -103,20 +107,17 @@ namespace ImageProcessing
                     // Resize it to fit a 150x150 square
                     using (var image = ImageSharpImage.Load(input))
                     {
-                        image.Resize(new ResizeOptions
+                        image.Mutate(i => i.Resize(new ResizeOptions
                         {
                             Size = new ImageSharpSize(size, size),
                             Mode = ResizeMode.Max
-                        });
+                        }));
 
                         // Reduce the size of the file
                         image.MetaData.ExifProfile = null;
 
-                        // Set the quality
-                        image.MetaData.Quality = Quality;
-
                         // Save the results
-                        image.Save(output);
+                        image.Save(output, jpegEncoder);
                     }
                 }
             }
@@ -166,9 +167,9 @@ namespace ImageProcessing
                 var resized = new FreeImageBitmap(original, scaled.width, scaled.height);
                 // JPEG_QUALITYGOOD is 75 JPEG.
                 // JPEG_BASELINE strips metadata (EXIF, etc.)
-               resized.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
-                   FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
-                   FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
+                resized.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
+                    FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
+                    FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
             }
         }
 
@@ -183,7 +184,8 @@ namespace ImageProcessing
 
         internal static void MagicScalerResize(string path, int size, string outputDirectory)
         {
-            var settings = new ProcessImageSettings() {
+            var settings = new ProcessImageSettings()
+            {
                 Width = size,
                 Height = size,
                 ResizeMode = CropScaleMode.Max,
