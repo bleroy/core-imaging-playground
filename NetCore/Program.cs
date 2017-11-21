@@ -15,7 +15,7 @@ namespace ImageProcessing
         public static void Main(string[] args)
         {
             var config = ManualConfig.CreateEmpty()
-                   .With(Job.Default.With(CsProjCoreToolchain.NetCoreApp11))
+                   .With(Job.Default.With(CsProjCoreToolchain.NetCoreApp20))
                    .With(DefaultConfig.Instance.GetLoggers().ToArray())
                    .With(DefaultConfig.Instance.GetColumnProviders().ToArray())
                    .With(MemoryDiagnoser.Default);
