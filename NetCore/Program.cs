@@ -5,20 +5,27 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
 using System;
 using System.Linq;
-using System.Reflection;
 
 namespace ImageProcessing
 {
+    public class MultipleCliConfig : ManualConfig
+    {
+        public MultipleCliConfig()
+        {
+            this.Add(Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp11).WithId(".Net Core 1.1 CLI"));
+            this.Add(Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp20).WithId(".Net Core 2.0 CLI"));
+        }
+    }
 
     public class Program
     {
         public static void Main(string[] args)
         {
-            var config = ManualConfig.CreateEmpty()
-                   .With(Job.Default.With(CsProjCoreToolchain.NetCoreApp20))
+            var config = new MultipleCliConfig()
                    .With(DefaultConfig.Instance.GetLoggers().ToArray())
                    .With(DefaultConfig.Instance.GetColumnProviders().ToArray())
                    .With(MemoryDiagnoser.Default);
+
             Console.WriteLine(@"Choose an image resizing benchmarks:
 
 0. Just run ""Load, Resize, Save"" once, don't benchmark
@@ -27,7 +34,7 @@ namespace ImageProcessing
 3. Load, resize, save in parallel
 
 ");
-            switch(Console.ReadKey().Key)
+            switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.D0:
                     var lrs = new LoadResizeSave();
