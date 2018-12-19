@@ -6,7 +6,6 @@ using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
 using PhotoSauce.MagicScaler;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
@@ -46,6 +45,7 @@ namespace ImageProcessing
                     throw new FileNotFoundException("Could not find an image directory.");
                 }
             }
+
             imageDirectory = Path.Combine(imageDirectory, "images");
 
             // Get at most 20 images from there

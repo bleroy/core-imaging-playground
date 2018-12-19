@@ -1,13 +1,11 @@
-﻿using BenchmarkDotNet.Attributes;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-
+using BenchmarkDotNet.Attributes;
 using SystemDrawingImage = System.Drawing.Image;
 
 namespace ImageProcessing
@@ -18,24 +16,24 @@ namespace ImageProcessing
         private const int Quality = 75;
         private const string SystemDrawing = nameof(SystemDrawing);
 
-        private readonly IEnumerable<string> _images;
-        private readonly string _outputDirectory;
-        private static readonly ImageCodecInfo _codec;
-        private static readonly EncoderParameters _encoderParameters;
+        private readonly IEnumerable<string> images;
+        private readonly string outputDirectory;
+        private static readonly ImageCodecInfo codec;
+        private static readonly EncoderParameters encoderParameters;
 
         static LoadResizeSave()
         {
             // Initialize the encoder and parameters for System.Drawing
-            var qualityParamId = Encoder.Quality;
-            _encoderParameters = new EncoderParameters(1);
-            _encoderParameters.Param[0] = new EncoderParameter(qualityParamId, Quality);
-            _codec = Array.Find(ImageCodecInfo.GetImageDecoders(), codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+            Encoder qualityParamId = Encoder.Quality;
+            encoderParameters = new EncoderParameters(1);
+            encoderParameters.Param[0] = new EncoderParameter(qualityParamId, Quality);
+            codec = Array.Find(ImageCodecInfo.GetImageDecoders(), codec => codec.FormatID == ImageFormat.Jpeg.Guid);
         }
 
         public LoadResizeSave()
         {
             // Find the closest images directory
-            var imageDirectory = Path.GetFullPath(".");
+            string imageDirectory = Path.GetFullPath(".");
             while (!Directory.Exists(Path.Combine(imageDirectory, "images")))
             {
                 imageDirectory = Path.GetDirectoryName(imageDirectory);
@@ -44,14 +42,17 @@ namespace ImageProcessing
                     throw new FileNotFoundException("Could not find an image directory.");
                 }
             }
+
             imageDirectory = Path.Combine(imageDirectory, "images");
+
             // Get at most 20 images from there
-            _images = Directory.EnumerateFiles(imageDirectory).Take(20);
+            this.images = Directory.EnumerateFiles(imageDirectory).Take(20);
+
             // Create the output directory next to the images directory
-            _outputDirectory = Path.Combine(Path.GetDirectoryName(imageDirectory), "output");
-            if (!Directory.Exists(_outputDirectory))
+            this.outputDirectory = Path.Combine(Path.GetDirectoryName(imageDirectory), "output");
+            if (!Directory.Exists(this.outputDirectory))
             {
-                Directory.CreateDirectory(_outputDirectory);
+                Directory.CreateDirectory(this.outputDirectory);
             }
         }
 
@@ -67,9 +68,9 @@ namespace ImageProcessing
         [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save")]
         public void SystemDrawingResizeBenchmark()
         {
-            foreach (var image in _images)
+            foreach (string image in this.images)
             {
-                SystemDrawingResize(image, ThumbnailSize, _outputDirectory);
+                SystemDrawingResize(image, ThumbnailSize, this.outputDirectory);
             }
         }
 
@@ -88,7 +89,8 @@ namespace ImageProcessing
                     width = Convert.ToInt32(image.Width * size / (double)image.Height);
                     height = size;
                 }
-                var resized = new Bitmap(width, height);
+
+                using (var resized = new Bitmap(width, height))
                 using (var graphics = Graphics.FromImage(resized))
                 using (var attributes = new ImageAttributes())
                 {
@@ -98,10 +100,20 @@ namespace ImageProcessing
                     graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     graphics.CompositingMode = CompositingMode.SourceCopy;
                     graphics.DrawImage(image, Rectangle.FromLTRB(0, 0, width, height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+
                     // Save the results
-                    using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
+                    using (FileStream output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
                     {
-                        resized.Save(output, _codec, _encoderParameters);
+                        // This works
+                        // resized.Save(output, ImageFormat.Jpeg);
+                        //
+                        // This fails
+                        // resized.Save(output, codec, encoderParameters);
+                        // {System.ArgumentException: Parameter is not valid.
+                        // at System.Drawing.Image.Save(Stream stream, ImageCodecInfo encoder, EncoderParameters encoderParams)
+                        // See https://github.com/dotnet/corefx/issues/34156
+                        // This means we can only compare performance not quality with the System.Drawing output.
+                        resized.Save(output, ImageFormat.Jpeg);
                     }
                 }
             }

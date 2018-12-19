@@ -9,23 +9,19 @@ namespace ImageProcessing
 {
     public class Resize
     {
-        const int Width = 1280;
-        const int Height = 853;
-        const int ResizedWidth = 150;
-        const int ResizedHeight = 99;
-
-        public Resize()
-        {
-        }
+        private const int Width = 1280;
+        private const int Height = 853;
+        private const int ResizedWidth = 150;
+        private const int ResizedHeight = 99;
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
         public Size ResizeSystemDrawing()
         {
-            using (Bitmap source = new Bitmap(Width, Height))
+            using (var source = new Bitmap(Width, Height))
             {
-                using (Bitmap destination = new Bitmap(ResizedWidth, ResizedHeight))
+                using (var destination = new Bitmap(ResizedWidth, ResizedHeight))
                 {
-                    using (Graphics graphics = Graphics.FromImage(destination))
+                    using (var graphics = Graphics.FromImage(destination))
                     {
                         graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                         graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;

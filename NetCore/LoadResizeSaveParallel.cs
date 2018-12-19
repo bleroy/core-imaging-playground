@@ -24,6 +24,7 @@ namespace ImageProcessing
                     throw new FileNotFoundException("Could not find an image directory.");
                 }
             }
+
             imageDirectory = Path.Combine(imageDirectory, "images");
 
             // Get at most 20 images from there
