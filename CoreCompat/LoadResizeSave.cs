@@ -13,7 +13,7 @@ namespace ImageProcessing
     public class LoadResizeSave
     {
         private const int ThumbnailSize = 150;
-        private const int Quality = 75;
+        private const long Quality = 75L;
         private const string SystemDrawing = nameof(SystemDrawing);
 
         private readonly IEnumerable<string> images;
@@ -104,16 +104,7 @@ namespace ImageProcessing
                     // Save the results
                     using (FileStream output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
                     {
-                        // This works
-                        // resized.Save(output, ImageFormat.Jpeg);
-                        //
-                        // This fails
-                        // resized.Save(output, codec, encoderParameters);
-                        // {System.ArgumentException: Parameter is not valid.
-                        // at System.Drawing.Image.Save(Stream stream, ImageCodecInfo encoder, EncoderParameters encoderParams)
-                        // See https://github.com/dotnet/corefx/issues/34156
-                        // This means we can only compare performance not quality with the System.Drawing output.
-                        resized.Save(output, ImageFormat.Jpeg);
+                        resized.Save(output, codec, encoderParameters);
                     }
                 }
             }
