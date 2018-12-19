@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp1.1;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>NetCore</AssemblyName>
     <OutputType>Exe</OutputType>
@@ -12,12 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.10" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.1.0" />
-    <PackageReference Include="FreeImage-dotnet-core" Version="4.3.5" />
-    <PackageReference Include="PhotoSauce.MagicScaler" Version="0.8.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0002" />
-    <PackageReference Include="SkiaSharp" Version="1.59.2" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.3" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.9.2" />
+    <PackageReference Include="FreeImage-dotnet-core" Version="4.3.6" />
+    <PackageReference Include="PhotoSauce.MagicScaler" Version="0.9.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-dev002288" />
+    <PackageReference Include="SkiaSharp" Version="1.68.0" />
   </ItemGroup>
 
   <ItemGroup>

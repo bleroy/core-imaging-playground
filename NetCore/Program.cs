@@ -1,10 +1,10 @@
-﻿using BenchmarkDotNet.Configs;
+﻿using System;
+using System.Linq;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
-using System;
-using System.Linq;
 
 namespace ImageProcessing
 {
@@ -12,8 +12,10 @@ namespace ImageProcessing
     {
         public MultipleCliConfig()
         {
-            this.Add(Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp11).WithId(".Net Core 1.1 CLI"));
-            this.Add(Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp20).WithId(".Net Core 2.0 CLI"));
+            this.Add(
+                Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp21).WithId(".Net Core 2.1 CLI")
+                .WithWarmupCount(3)
+                .WithIterationCount(3));
         }
     }
 
@@ -21,7 +23,7 @@ namespace ImageProcessing
     {
         public static void Main(string[] args)
         {
-            var config = new MultipleCliConfig()
+            IConfig config = new MultipleCliConfig()
                    .With(DefaultConfig.Instance.GetLoggers().ToArray())
                    .With(DefaultConfig.Instance.GetColumnProviders().ToArray())
                    .With(MemoryDiagnoser.Default);

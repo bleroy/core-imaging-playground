@@ -14,14 +14,14 @@ namespace ImageProcessing
 {
     public class LoadResizeSave
     {
-        const int ThumbnailSize = 150;
-        const int Quality = 75;
-        const string SystemDrawing = nameof(SystemDrawing);
+        private const int ThumbnailSize = 150;
+        private const int Quality = 75;
+        private const string SystemDrawing = nameof(SystemDrawing);
 
-        readonly IEnumerable<string> _images;
-        readonly string _outputDirectory;
-        static readonly ImageCodecInfo _codec;
-        static readonly EncoderParameters _encoderParameters;
+        private readonly IEnumerable<string> _images;
+        private readonly string _outputDirectory;
+        private static readonly ImageCodecInfo _codec;
+        private static readonly EncoderParameters _encoderParameters;
 
         static LoadResizeSave()
         {
@@ -29,7 +29,7 @@ namespace ImageProcessing
             var qualityParamId = Encoder.Quality;
             _encoderParameters = new EncoderParameters(1);
             _encoderParameters.Param[0] = new EncoderParameter(qualityParamId, Quality);
-            _codec = ImageCodecInfo.GetImageDecoders().FirstOrDefault(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+            _codec = Array.Find(ImageCodecInfo.GetImageDecoders(), codec => codec.FormatID == ImageFormat.Jpeg.Guid);
         }
 
         public LoadResizeSave()
@@ -55,7 +55,7 @@ namespace ImageProcessing
             }
         }
 
-        static string OutputPath(string inputPath, string outputDirectory, string postfix)
+        private static string OutputPath(string inputPath, string outputDirectory, string postfix)
         {
             return Path.Combine(
                 outputDirectory,

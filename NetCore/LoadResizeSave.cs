@@ -1,16 +1,15 @@
-﻿using BenchmarkDotNet.Attributes;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using ImageMagick;
-using FreeImageAPI;
-using PhotoSauce.MagicScaler;
-using SkiaSharp;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BenchmarkDotNet.Attributes;
+using FreeImageAPI;
+using ImageMagick;
+using PhotoSauce.MagicScaler;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.Primitives.Size;
 
@@ -18,31 +17,27 @@ namespace ImageProcessing
 {
     public class LoadResizeSave
     {
-        const int ThumbnailSize = 150;
-        const int Quality = 75;
-        const string ImageSharp = nameof(ImageSharp);
-        const string SystemDrawing = nameof(SystemDrawing);
-        const string MagickNET = nameof(MagickNET);
-        const string FreeImage = nameof(FreeImage);
-        const string MagicScaler = nameof(MagicScaler);
-        const string SkiaSharpCanvas = nameof(SkiaSharpCanvas);
-        const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
+        private const int ThumbnailSize = 150;
+        private const int Quality = 75;
+        private const string ImageSharp = nameof(ImageSharp);
+        private const string SystemDrawing = nameof(SystemDrawing);
+        private const string MagickNET = nameof(MagickNET);
+        private const string FreeImage = nameof(FreeImage);
+        private const string MagicScaler = nameof(MagicScaler);
+        private const string SkiaSharpCanvas = nameof(SkiaSharpCanvas);
+        private const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
         // Set the quality for ImagSharp
         private static readonly JpegEncoder jpegEncoder = new JpegEncoder { Quality = Quality };
+        private readonly IEnumerable<string> images;
+        private readonly string outputDirectory;
 
-        readonly IEnumerable<string> _images;
-        readonly string _outputDirectory;
-
-        static LoadResizeSave()
-        {
-            OpenCL.IsEnabled = false;
-        }
+        static LoadResizeSave() => OpenCL.IsEnabled = false;
 
         public LoadResizeSave()
         {
             // Find the closest images directory
-            var imageDirectory = Path.GetFullPath(".");
+            string imageDirectory = Path.GetFullPath(".");
             while (!Directory.Exists(Path.Combine(imageDirectory, "images")))
             {
                 imageDirectory = Path.GetDirectoryName(imageDirectory);
@@ -52,17 +47,19 @@ namespace ImageProcessing
                 }
             }
             imageDirectory = Path.Combine(imageDirectory, "images");
+
             // Get at most 20 images from there
-            _images = Directory.EnumerateFiles(imageDirectory).Take(20);
+            this.images = Directory.EnumerateFiles(imageDirectory).Take(20);
+
             // Create the output directory next to the images directory
-            _outputDirectory = Path.Combine(Path.GetDirectoryName(imageDirectory), "output");
-            if (!Directory.Exists(_outputDirectory))
+            this.outputDirectory = Path.Combine(Path.GetDirectoryName(imageDirectory), "output");
+            if (!Directory.Exists(this.outputDirectory))
             {
-                Directory.CreateDirectory(_outputDirectory);
+                Directory.CreateDirectory(this.outputDirectory);
             }
         }
 
-        static string OutputPath(string inputPath, string outputDirectory, string postfix)
+        private static string OutputPath(string inputPath, string outputDirectory, string postfix)
         {
             return Path.Combine(
                 outputDirectory,
@@ -71,7 +68,7 @@ namespace ImageProcessing
                 + Path.GetExtension(inputPath));
         }
 
-        static (int width, int height) ScaledSize(int inWidth, int inHeight, int outSize)
+        private static (int width, int height) ScaledSize(int inWidth, int inHeight, int outSize)
         {
             int width, height;
             if (inWidth > inHeight)
@@ -91,18 +88,17 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageSharp Load, Resize, Save")]
         public void ImageSharpBenchmark()
         {
-            foreach (var image in _images)
+            foreach (string image in this.images)
             {
-                ImageSharpResize(image, ThumbnailSize, _outputDirectory);
+                ImageSharpResize(image, ThumbnailSize, this.outputDirectory);
             }
         }
 
         internal static void ImageSharpResize(string path, int size, string outputDirectory)
         {
-
-            using (var input = File.OpenRead(path))
+            using (FileStream input = File.OpenRead(path))
             {
-                using (var output = File.Open(OutputPath(path, outputDirectory, ImageSharp), FileMode.Create))
+                using (FileStream output = File.Open(OutputPath(path, outputDirectory, ImageSharp), FileMode.Create))
                 {
                     // Resize it to fit a 150x150 square
                     using (var image = ImageSharpImage.Load(input))
@@ -126,9 +122,9 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageMagick Load, Resize, Save")]
         public void MagickResizeBenchmark()
         {
-            foreach (var image in _images)
+            foreach (string image in this.images)
             {
-                MagickResize(image, ThumbnailSize, _outputDirectory);
+                MagickResize(image, ThumbnailSize, this.outputDirectory);
             }
         }
 
@@ -153,9 +149,9 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageFree Load, Resize, Save")]
         public void FreeImageResizeBenchmark()
         {
-            foreach (var image in _images)
+            foreach (string image in this.images)
             {
-                FreeImageResize(image, ThumbnailSize, _outputDirectory);
+                FreeImageResize(image, ThumbnailSize, this.outputDirectory);
             }
         }
 
@@ -163,22 +159,22 @@ namespace ImageProcessing
         {
             using (var original = FreeImageBitmap.FromFile(path))
             {
-                var scaled = ScaledSize(original.Width, original.Height, size);
-                var resized = new FreeImageBitmap(original, scaled.width, scaled.height);
+                (int width, int height) = ScaledSize(original.Width, original.Height, size);
+                var resized = new FreeImageBitmap(original, width, height);
                 // JPEG_QUALITYGOOD is 75 JPEG.
                 // JPEG_BASELINE strips metadata (EXIF, etc.)
                 resized.Save(OutputPath(path, outputDirectory, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
-                    FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
-                    FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
+                    FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD
+                    | FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
             }
         }
 
         [Benchmark(Description = "MagicScaler Load, Resize, Save")]
         public void MagicScalerResizeBenchmark()
         {
-            foreach (var image in _images)
+            foreach (string image in this.images)
             {
-                MagicScalerResize(image, ThumbnailSize, _outputDirectory);
+                MagicScalerResize(image, ThumbnailSize, this.outputDirectory);
             }
         }
 
@@ -203,31 +199,34 @@ namespace ImageProcessing
         [Benchmark(Description = "SkiaSharp Canvas Load, Resize, Save")]
         public void SkiaCanvasLoadResizeSaveBenchmark()
         {
-            foreach (var image in _images)
+            foreach (string image in this.images)
             {
-                SkiaCanvasLoadResizeSave(image, ThumbnailSize, _outputDirectory);
+                SkiaCanvasLoadResizeSave(image, ThumbnailSize, this.outputDirectory);
             }
         }
 
         internal static void SkiaCanvasLoadResizeSave(string path, int size, string outputDirectory)
         {
-            using (var input = File.OpenRead(path))
+            using (FileStream input = File.OpenRead(path))
             {
                 using (var inputStream = new SKManagedStream(input))
                 {
                     using (var original = SKBitmap.Decode(inputStream))
                     {
-                        var scaled = ScaledSize(original.Width, original.Height, size);
-                        var surface = SKSurface.Create(scaled.width, scaled.height, original.ColorType, original.AlphaType);
-                        var canvas = surface.Canvas;
-                        var scale = (float)scaled.width / original.Width;
+                        (int width, int height) = ScaledSize(original.Width, original.Height, size);
+                        var info = new SKImageInfo(width, height, original.ColorType, original.AlphaType);
+                        var surface = SKSurface.Create(info);
+                        SKCanvas canvas = surface.Canvas;
+                        float scale = (float)width / original.Width;
                         canvas.Scale(scale);
-                        var paint = new SKPaint();
-                        paint.FilterQuality = SKFilterQuality.High;
+                        var paint = new SKPaint
+                        {
+                            FilterQuality = SKFilterQuality.High
+                        };
                         canvas.DrawBitmap(original, 0, 0, paint);
                         canvas.Flush();
 
-                        using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpCanvas)))
+                        using (FileStream output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpCanvas)))
                         {
                             surface.Snapshot()
                                 .Encode(SKEncodedImageFormat.Jpeg, Quality)
@@ -241,32 +240,34 @@ namespace ImageProcessing
         [Benchmark(Description = "SkiaSharp Bitmap Load, Resize, Save")]
         public void SkiaBitmapLoadResizeSaveBenchmark()
         {
-            foreach (var image in _images)
+            foreach (string image in this.images)
             {
-                SkiaBitmapLoadResizeSave(image, ThumbnailSize, _outputDirectory);
+                SkiaBitmapLoadResizeSave(image, ThumbnailSize, this.outputDirectory);
             }
         }
 
         internal static void SkiaBitmapLoadResizeSave(string path, int size, string outputDirectory)
         {
-            using (var input = File.OpenRead(path))
+            using (FileStream input = File.OpenRead(path))
             {
                 using (var inputStream = new SKManagedStream(input))
                 {
                     using (var original = SKBitmap.Decode(inputStream))
                     {
-                        var scaled = ScaledSize(original.Width, original.Height, size);
-                        using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), SKBitmapResizeMethod.Lanczos3))
+                        (int width, int height) = ScaledSize(original.Width, original.Height, size);
+                        using (SKBitmap resized = original.Resize(new SKImageInfo(width, height), SKFilterQuality.High))
                         {
                             if (resized == null)
+                            {
                                 return;
+                            }
 
                             using (var image = SKImage.FromBitmap(resized))
                             {
-                                using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpBitmap)))
+                                using (FileStream output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpBitmap)))
                                 {
                                     image.Encode(SKEncodedImageFormat.Jpeg, Quality)
-                                        .SaveTo(output);
+                                         .SaveTo(output);
                                 }
                             }
                         }
