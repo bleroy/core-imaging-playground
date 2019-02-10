@@ -1,24 +1,12 @@
-﻿using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Jobs;
-using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Toolchains.CsProj;
+﻿using BenchmarkDotNet.Running;
 using System;
-using System.Linq;
-using System.Reflection;
 
 namespace ImageProcessing
 {
-
     public class Program
     {
         public static void Main(string[] args)
         {
-            var config = ManualConfig.CreateEmpty()
-                   .With(Job.Default.With(CsProjCoreToolchain.NetCoreApp11))
-                   .With(DefaultConfig.Instance.GetLoggers().ToArray())
-                   .With(DefaultConfig.Instance.GetColumnProviders().ToArray())
-                   .With(MemoryDiagnoser.Default);
             Console.WriteLine(@"Choose an image resizing benchmarks:
 
 0. Just run ""Load, Resize, Save"" once, don't benchmark
@@ -39,13 +27,13 @@ namespace ImageProcessing
                     lrs.SkiaCanvasLoadResizeSaveBenchmark();
                     break;
                 case ConsoleKey.D1:
-                    BenchmarkRunner.Run<Resize>(config);
+                    BenchmarkRunner.Run<Resize>();
                     break;
                 case ConsoleKey.D2:
-                    BenchmarkRunner.Run<LoadResizeSave>(config);
+                    BenchmarkRunner.Run<LoadResizeSave>();
                     break;
                 case ConsoleKey.D3:
-                    BenchmarkRunner.Run<LoadResizeSaveParallel>(config);
+                    BenchmarkRunner.Run<LoadResizeSaveParallel>();
                     break;
                 default:
                     Console.WriteLine("Unrecognized command.");

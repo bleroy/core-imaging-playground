@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ImageProcessing
 {
+    [MemoryDiagnoser]
     public class LoadResizeSaveParallel
     {
         const int ThumbnailSize = 150;

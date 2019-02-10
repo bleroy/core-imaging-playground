@@ -15,6 +15,7 @@ using ImageSharpSize = SixLabors.Primitives.Size;
 
 namespace ImageProcessing
 {
+    [MemoryDiagnoser]
     public class Resize
     {
         const int Width = 1280;

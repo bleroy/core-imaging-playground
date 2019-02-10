@@ -16,6 +16,7 @@ using ImageSharpSize = SixLabors.Primitives.Size;
 
 namespace ImageProcessing
 {
+    [MemoryDiagnoser]
     public class LoadResizeSave
     {
         const int ThumbnailSize = 150;
