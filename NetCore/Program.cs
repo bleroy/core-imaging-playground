@@ -15,16 +15,23 @@ namespace ImageProcessing
 3. Load, resize, save in parallel
 
 ");
-            switch(Console.ReadKey().Key)
+            switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.D0:
-                    var lrs = new LoadResizeSave();
-                    lrs.ImageSharpBenchmark();
-                    lrs.MagickResizeBenchmark();
-                    lrs.FreeImageResizeBenchmark();
-                    lrs.MagicScalerResizeBenchmark();
-                    lrs.SkiaBitmapLoadResizeSaveBenchmark();
-                    lrs.SkiaCanvasLoadResizeSaveBenchmark();
+                    try
+                    {
+                        var lrs = new LoadResizeSave();
+                        lrs.ImageSharpBenchmark();
+                        lrs.MagickResizeBenchmark();
+                        lrs.FreeImageResizeBenchmark();
+                        lrs.MagicScalerResizeBenchmark();
+                        lrs.SkiaBitmapLoadResizeSaveBenchmark();
+                        lrs.SkiaCanvasLoadResizeSaveBenchmark();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
                     break;
                 case ConsoleKey.D1:
                     BenchmarkRunner.Run<Resize>();
