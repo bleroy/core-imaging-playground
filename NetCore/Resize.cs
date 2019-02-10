@@ -4,12 +4,13 @@ using System.Drawing;
 using BenchmarkDotNet.Attributes;
 
 using ImageMagick;
-using SixLabors.ImageSharp;
 using FreeImageAPI;
 using PhotoSauce.MagicScaler;
 using SkiaSharp;
 
-using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.Rgba32>;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.Primitives.Size;
 
 namespace ImageProcessing
@@ -32,9 +33,8 @@ namespace ImageProcessing
             using (var image = new ImageSharpImage(Width, Height))
             {
                 image.Mutate(i => i.Resize(ResizedWidth, ResizedHeight));
+                return image.Size();
             }
-            
-            return new ImageSharpSize(ResizedWidth, ResizedHeight);
         }
 
         [Benchmark(Description = "ImageMagick Resize")]

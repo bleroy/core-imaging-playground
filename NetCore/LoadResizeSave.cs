@@ -1,15 +1,15 @@
 ﻿using BenchmarkDotNet.Attributes;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 using ImageMagick;
 using FreeImageAPI;
 using PhotoSauce.MagicScaler;
 using SkiaSharp;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.Primitives.Size;
