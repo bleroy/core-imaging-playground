@@ -9,6 +9,11 @@ using FreeImageAPI;
 using PhotoSauce.MagicScaler;
 using SkiaSharp;
 
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using SystemDrawingImage = System.Drawing.Image;
+
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
@@ -30,7 +35,8 @@ namespace ImageProcessing
         const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
         // Set the quality for ImagSharp
-        private static readonly JpegEncoder jpegEncoder = new JpegEncoder { Quality = Quality };
+        private static readonly JpegEncoder imageSharpJpegEncoder = new JpegEncoder { Quality = Quality };
+        private static readonly ImageCodecInfo systemDrawingJpegCodec = ImageCodecInfo.GetImageEncoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
@@ -89,6 +95,42 @@ namespace ImageProcessing
             return (width, height);
         }
 
+        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save")]
+        public void SystemDrawingResizeBenchmark()
+        {
+            foreach (var image in _images)
+            {
+                SystemDrawingResize(image, ThumbnailSize, _outputDirectory);
+            }
+        }
+
+        internal static void SystemDrawingResize(string path, int size, string outputDirectory)
+        {
+            using (var image = SystemDrawingImage.FromFile(path, true))
+            {
+                var scaled = ScaledSize(image.Width, image.Height, size);
+                var resized = new Bitmap(scaled.width, scaled.height);
+                using (var graphics = Graphics.FromImage(resized))
+                using (var attributes = new ImageAttributes())
+                {
+                    attributes.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    graphics.CompositingMode = CompositingMode.SourceCopy;
+                    graphics.CompositingQuality = CompositingQuality.AssumeLinear;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.DrawImage(image, Rectangle.FromLTRB(0, 0, resized.Width, resized.Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+                    // Save the results
+                    using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
+                    using (var encoderParams = new EncoderParameters(1))
+                    using (var qualityParam = new EncoderParameter(Encoder.Quality, (long)Quality))
+                    {
+                        encoderParams.Param[0] = qualityParam;
+                        resized.Save(output, systemDrawingJpegCodec, encoderParams);
+                    }
+                }
+            }
+        }
+
         [Benchmark(Description = "ImageSharp Load, Resize, Save")]
         public void ImageSharpBenchmark()
         {
@@ -118,7 +160,7 @@ namespace ImageProcessing
                         image.MetaData.ExifProfile = null;
 
                         // Save the results
-                        image.Save(output, jpegEncoder);
+                        image.Save(output, imageSharpJpegEncoder);
                     }
                 }
             }

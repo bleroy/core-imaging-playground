@@ -21,6 +21,7 @@ namespace ImageProcessing
                     try
                     {
                         var lrs = new LoadResizeSave();
+                        lrs.SystemDrawingResizeBenchmark();
                         lrs.ImageSharpBenchmark();
                         lrs.MagickResizeBenchmark();
                         lrs.FreeImageResizeBenchmark();

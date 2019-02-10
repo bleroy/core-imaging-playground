@@ -38,6 +38,14 @@ namespace ImageProcessing
             }
         }
 
+        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save - Parallel")]
+        public void SystemDrawingResizeBenchmark()
+        {
+            Parallel.ForEach(_images, image => {
+                LoadResizeSave.SystemDrawingResize(image, ThumbnailSize, _outputDirectory);
+            });
+        }
+
         [Benchmark(Description = "ImageSharp Load, Resize, Save - Parallel")]
         public void ImageSharpBenchmark()
         {
