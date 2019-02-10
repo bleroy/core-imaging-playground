@@ -1,11 +1,13 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System;
+using System.Buffers;
+using System.Drawing;
+using BenchmarkDotNet.Attributes;
 
 using ImageMagick;
 using SixLabors.ImageSharp;
 using FreeImageAPI;
 using PhotoSauce.MagicScaler;
 using SkiaSharp;
-using System.Runtime.InteropServices;
 
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.Rgba32>;
 using ImageSharpSize = SixLabors.Primitives.Size;
@@ -57,25 +59,27 @@ namespace ImageProcessing
         }
 
         [Benchmark(Description = "MagicScaler Resize")]
-        public void MagicScalerResize()
+        public Size MagicScalerResize()
         {
             // stride is width * bytes per pixel (3 for BGR), rounded up to the nearest multiple of 4
             const uint stride = ResizedWidth * 3u + 3u & ~3u;
             const uint bufflen = ResizedHeight * stride;
 
-            var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp);
             var settings = new ProcessImageSettings
             {
                 Width = ResizedWidth,
-                Height = ResizedHeight
+                Height = ResizedHeight,
+                Sharpen = false
             };
 
+            using (var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp))
             using (var pipeline = MagicImageProcessor.BuildPipeline(pixels, settings))
             {
-                var rect = new System.Drawing.Rectangle(0, 0, ResizedWidth, ResizedHeight);
-                var buffer = Marshal.AllocHGlobal((int)bufflen);
-                pipeline.PixelSource.CopyPixels(rect, stride, bufflen, buffer);
-                Marshal.FreeHGlobal(buffer);
+                var rect = new Rectangle(0, 0, ResizedWidth, ResizedHeight);
+                var buffer = ArrayPool<byte>.Shared.Rent((int)bufflen);
+                pipeline.PixelSource.CopyPixels(rect, (int)stride, new Span<byte>(buffer, 0, (int)bufflen));
+                ArrayPool<byte>.Shared.Return(buffer);
+                return rect.Size;
             }
         }
 
