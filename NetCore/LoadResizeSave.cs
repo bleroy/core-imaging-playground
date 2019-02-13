@@ -1,21 +1,27 @@
 ﻿using BenchmarkDotNet.Attributes;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 using ImageMagick;
 using FreeImageAPI;
 using PhotoSauce.MagicScaler;
 using SkiaSharp;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using SystemDrawingImage = System.Drawing.Image;
+
+using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.Primitives.Size;
 
 namespace ImageProcessing
 {
+    [MemoryDiagnoser]
     public class LoadResizeSave
     {
         const int ThumbnailSize = 150;
@@ -29,7 +35,8 @@ namespace ImageProcessing
         const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
         // Set the quality for ImagSharp
-        private static readonly JpegEncoder jpegEncoder = new JpegEncoder { Quality = Quality };
+        private static readonly JpegEncoder imageSharpJpegEncoder = new JpegEncoder { Quality = Quality };
+        private static readonly ImageCodecInfo systemDrawingJpegCodec = ImageCodecInfo.GetImageEncoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
         readonly IEnumerable<string> _images;
         readonly string _outputDirectory;
@@ -88,6 +95,42 @@ namespace ImageProcessing
             return (width, height);
         }
 
+        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save")]
+        public void SystemDrawingResizeBenchmark()
+        {
+            foreach (var image in _images)
+            {
+                SystemDrawingResize(image, ThumbnailSize, _outputDirectory);
+            }
+        }
+
+        internal static void SystemDrawingResize(string path, int size, string outputDirectory)
+        {
+            using (var image = SystemDrawingImage.FromFile(path, true))
+            {
+                var scaled = ScaledSize(image.Width, image.Height, size);
+                var resized = new Bitmap(scaled.width, scaled.height);
+                using (var graphics = Graphics.FromImage(resized))
+                using (var attributes = new ImageAttributes())
+                {
+                    attributes.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    graphics.CompositingMode = CompositingMode.SourceCopy;
+                    graphics.CompositingQuality = CompositingQuality.AssumeLinear;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.DrawImage(image, Rectangle.FromLTRB(0, 0, resized.Width, resized.Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+                    // Save the results
+                    using (var output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
+                    using (var encoderParams = new EncoderParameters(1))
+                    using (var qualityParam = new EncoderParameter(Encoder.Quality, (long)Quality))
+                    {
+                        encoderParams.Param[0] = qualityParam;
+                        resized.Save(output, systemDrawingJpegCodec, encoderParams);
+                    }
+                }
+            }
+        }
+
         [Benchmark(Description = "ImageSharp Load, Resize, Save")]
         public void ImageSharpBenchmark()
         {
@@ -117,7 +160,7 @@ namespace ImageProcessing
                         image.MetaData.ExifProfile = null;
 
                         // Save the results
-                        image.Save(output, jpegEncoder);
+                        image.Save(output, imageSharpJpegEncoder);
                     }
                 }
             }
@@ -212,27 +255,23 @@ namespace ImageProcessing
         internal static void SkiaCanvasLoadResizeSave(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
+            using (var inputStream = new SKManagedStream(input))
+            using (var original = SKBitmap.Decode(inputStream))
             {
-                using (var inputStream = new SKManagedStream(input))
+                var scaled = ScaledSize(original.Width, original.Height, size);
+                using (var surface = SKSurface.Create(scaled.width, scaled.height, original.ColorType, original.AlphaType))
+                using (var paint = new SKPaint() { FilterQuality = SKFilterQuality.High })
                 {
-                    using (var original = SKBitmap.Decode(inputStream))
-                    {
-                        var scaled = ScaledSize(original.Width, original.Height, size);
-                        var surface = SKSurface.Create(scaled.width, scaled.height, original.ColorType, original.AlphaType);
-                        var canvas = surface.Canvas;
-                        var scale = (float)scaled.width / original.Width;
-                        canvas.Scale(scale);
-                        var paint = new SKPaint();
-                        paint.FilterQuality = SKFilterQuality.High;
-                        canvas.DrawBitmap(original, 0, 0, paint);
-                        canvas.Flush();
+                    var canvas = surface.Canvas;
+                    canvas.Scale((float)scaled.width / original.Width);
+                    canvas.DrawBitmap(original, 0, 0, paint);
+                    canvas.Flush();
 
-                        using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpCanvas)))
-                        {
-                            surface.Snapshot()
-                                .Encode(SKEncodedImageFormat.Jpeg, Quality)
-                                .SaveTo(output);
-                        }
+                    using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpCanvas)))
+                    {
+                        surface.Snapshot()
+                            .Encode(SKEncodedImageFormat.Jpeg, Quality)
+                            .SaveTo(output);
                     }
                 }
             }
@@ -250,26 +289,20 @@ namespace ImageProcessing
         internal static void SkiaBitmapLoadResizeSave(string path, int size, string outputDirectory)
         {
             using (var input = File.OpenRead(path))
+            using (var inputStream = new SKManagedStream(input))
+            using (var original = SKBitmap.Decode(inputStream))
             {
-                using (var inputStream = new SKManagedStream(input))
+                var scaled = ScaledSize(original.Width, original.Height, size);
+                using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), SKBitmapResizeMethod.Lanczos3))
                 {
-                    using (var original = SKBitmap.Decode(inputStream))
-                    {
-                        var scaled = ScaledSize(original.Width, original.Height, size);
-                        using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), SKBitmapResizeMethod.Lanczos3))
-                        {
-                            if (resized == null)
-                                return;
+                    if (resized == null)
+                        return;
 
-                            using (var image = SKImage.FromBitmap(resized))
-                            {
-                                using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpBitmap)))
-                                {
-                                    image.Encode(SKEncodedImageFormat.Jpeg, Quality)
-                                        .SaveTo(output);
-                                }
-                            }
-                        }
+                    using (var image = SKImage.FromBitmap(resized))
+                    using (var output = File.OpenWrite(OutputPath(path, outputDirectory, SkiaSharpBitmap)))
+                    {
+                        image.Encode(SKEncodedImageFormat.Jpeg, Quality)
+                            .SaveTo(output);
                     }
                 }
             }

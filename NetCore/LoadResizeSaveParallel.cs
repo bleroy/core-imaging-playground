@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ImageProcessing
 {
+    [MemoryDiagnoser]
     public class LoadResizeSaveParallel
     {
         const int ThumbnailSize = 150;
@@ -35,6 +36,14 @@ namespace ImageProcessing
             {
                 Directory.CreateDirectory(_outputDirectory);
             }
+        }
+
+        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save - Parallel")]
+        public void SystemDrawingResizeBenchmark()
+        {
+            Parallel.ForEach(_images, image => {
+                LoadResizeSave.SystemDrawingResize(image, ThumbnailSize, _outputDirectory);
+            });
         }
 
         [Benchmark(Description = "ImageSharp Load, Resize, Save - Parallel")]
