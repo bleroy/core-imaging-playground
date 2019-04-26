@@ -12,11 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.11.3" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.9.2" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.12.0" />
     <PackageReference Include="FreeImage-dotnet-core" Version="4.3.6" />
     <PackageReference Include="PhotoSauce.MagicScaler" Version="0.9.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-dev002288" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-dev002604" />
     <PackageReference Include="SkiaSharp" Version="1.68.0" />
   </ItemGroup>
 

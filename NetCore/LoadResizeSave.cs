@@ -110,7 +110,7 @@ namespace ImageProcessing
                         }));
 
                         // Reduce the size of the file
-                        image.MetaData.ExifProfile = null;
+                        image.Metadata.ExifProfile = null;
 
                         // Save the results
                         image.Save(output, jpegEncoder);
