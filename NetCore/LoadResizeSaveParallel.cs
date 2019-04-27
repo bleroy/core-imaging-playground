@@ -42,7 +42,7 @@ namespace ImageProcessing
         public void SystemDrawingResizeBenchmark() => Parallel.ForEach(this.images, image => LoadResizeSave.SystemDrawingResize(image, ThumbnailSize, this.outputDirectory));
 
         [Benchmark(Description = "ImageSharp Load, Resize, Save - Parallel")]
-        public void ImageSharpBenchmark() => Parallel.ForEach(this.images, image => LoadResizeSave.ImageSharpResize(image, ThumbnailSize, this.outputDirectory));
+        public void ImageSharpResizeBenchmark() => Parallel.ForEach(this.images, image => LoadResizeSave.ImageSharpResize(image, ThumbnailSize, this.outputDirectory));
 
         [Benchmark(Description = "ImageMagick Load, Resize, Save - Parallel")]
         public void MagickResizeBenchmark() => Parallel.ForEach(this.images, image => LoadResizeSave.MagickResize(image, ThumbnailSize, this.outputDirectory));

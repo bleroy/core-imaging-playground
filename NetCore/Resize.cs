@@ -1,4 +1,3 @@
-﻿
 using System;
 using System.Buffers;
 using System.Drawing;
@@ -28,19 +27,18 @@ namespace ImageProcessing
         public Size ResizeSystemDrawing()
         {
             using (var source = new Bitmap(Width, Height))
+            using (var destination = new Bitmap(ResizedWidth, ResizedHeight))
             {
-                using (var destination = new Bitmap(ResizedWidth, ResizedHeight))
+                using (var graphics = Graphics.FromImage(destination))
                 {
-                    using (var graphics = Graphics.FromImage(destination))
-                    {
-                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                        graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                        graphics.DrawImage(source, 0, 0, ResizedWidth, ResizedHeight);
-                    }
-
-                    return destination.Size;
+                    graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    graphics.CompositingMode = CompositingMode.SourceCopy;
+                    graphics.CompositingQuality = CompositingQuality.AssumeLinear;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.DrawImage(source, 0, 0, ResizedWidth, ResizedHeight);
                 }
+
+                return destination.Size;
             }
         }
 
@@ -61,9 +59,8 @@ namespace ImageProcessing
             using (var image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), Width, Height))
             {
                 image.Resize(size);
+                return size;
             }
-
-            return size;
         }
 
         [Benchmark(Description = "FreeImage Resize")]
@@ -83,18 +80,19 @@ namespace ImageProcessing
             const int stride = (int)((ResizedWidth * 3u) + 3u & ~3u);
             const int bufflen = ResizedHeight * stride;
 
-            var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp);
             var settings = new ProcessImageSettings
             {
                 Width = ResizedWidth,
-                Height = ResizedHeight
+                Height = ResizedHeight,
+                Sharpen = false
             };
 
-            using (ProcessingPipeline pipeline = MagicImageProcessor.BuildPipeline(pixels, settings))
+            using (var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp))
+            using (var pipeline = MagicImageProcessor.BuildPipeline(pixels, settings))
             {
                 var rect = new Rectangle(0, 0, ResizedWidth, ResizedHeight);
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(bufflen);
-                pipeline.PixelSource.CopyPixels(rect, stride, buffer.AsSpan().Slice(0, bufflen));
+                var buffer = ArrayPool<byte>.Shared.Rent((int)bufflen);
+                pipeline.PixelSource.CopyPixels(rect, (int)stride, new Span<byte>(buffer, 0, (int)bufflen));
                 ArrayPool<byte>.Shared.Return(buffer);
                 return rect.Size;
             }
@@ -103,19 +101,19 @@ namespace ImageProcessing
         [Benchmark(Description = "SkiaSharp Canvas Resize")]
         public SKSize SkiaCanvasResizeBenchmark()
         {
-            const float scale = (float)ResizedWidth / Width;
-
             using (var original = new SKBitmap(Width, Height))
             using (var surface = SKSurface.Create(new SKImageInfo(ResizedWidth, ResizedHeight)))
             using (var paint = new SKPaint())
             {
-                SKCanvas canvas = surface.Canvas;
+                var canvas = surface.Canvas;
+                var scale = (float)ResizedWidth / Width;
                 canvas.Scale(scale);
 
                 paint.FilterQuality = SKFilterQuality.High;
                 canvas.DrawBitmap(original, 0, 0, paint);
                 canvas.Flush();
-                return new SKSize(ResizedWidth, ResizedHeight);
+
+                return new SKSize(canvas.DeviceClipBounds.Width, canvas.DeviceClipBounds.Height);
             }
         }
 
@@ -123,10 +121,10 @@ namespace ImageProcessing
         public SKSize SkiaBitmapResizeBenchmark()
         {
             using (var original = new SKBitmap(Width, Height))
-            using (SKBitmap resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.High))
+            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.High))
+            using (var image = SKImage.FromBitmap(resized))
             {
-                SKImage.FromBitmap(resized).Dispose();
-                return new SKSize(ResizedWidth, ResizedHeight);
+                return new SKSize(image.Width, image.Height);
             }
         }
     }

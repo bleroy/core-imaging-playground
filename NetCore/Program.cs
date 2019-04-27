@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -8,14 +8,18 @@ using BenchmarkDotNet.Toolchains.CsProj;
 
 namespace ImageProcessing
 {
-    public class MultipleCliConfig : ManualConfig
+    public class ShortRunWithMemoryDiagnoserConfig : ManualConfig
     {
-        public MultipleCliConfig()
+        public ShortRunWithMemoryDiagnoserConfig()
         {
             this.Add(
                 Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp22).WithId(".Net Core 2.2 CLI")
-                .WithWarmupCount(3)
-                .WithIterationCount(3));
+                .WithWarmupCount(5)
+                .WithIterationCount(5));
+
+            this.Add(DefaultConfig.Instance.GetLoggers().ToArray());
+            this.Add(DefaultConfig.Instance.GetColumnProviders().ToArray());
+            this.Add(MemoryDiagnoser.Default);
         }
     }
 
@@ -23,11 +27,6 @@ namespace ImageProcessing
     {
         public static void Main(string[] args)
         {
-            IConfig config = new MultipleCliConfig()
-                   .With(DefaultConfig.Instance.GetLoggers().ToArray())
-                   .With(DefaultConfig.Instance.GetColumnProviders().ToArray())
-                   .With(MemoryDiagnoser.Default);
-
             Console.WriteLine(@"Choose an image resizing benchmarks:
 
 0. Just run ""Load, Resize, Save"" once, don't benchmark
@@ -39,23 +38,30 @@ namespace ImageProcessing
             switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.D0:
-                    var lrs = new LoadResizeSave();
-                    lrs.SystemDrawingResizeBenchmark();
-                    lrs.ImageSharpBenchmark();
-                    lrs.MagickResizeBenchmark();
-                    lrs.FreeImageResizeBenchmark();
-                    lrs.MagicScalerResizeBenchmark();
-                    lrs.SkiaBitmapLoadResizeSaveBenchmark();
-                    lrs.SkiaCanvasLoadResizeSaveBenchmark();
+                    try
+                    {
+                        var lrs = new LoadResizeSave();
+                        lrs.SystemDrawingResizeBenchmark();
+                        lrs.ImageSharpResizeBenchmark();
+                        lrs.MagickResizeBenchmark();
+                        lrs.FreeImageResizeBenchmark();
+                        lrs.MagicScalerResizeBenchmark();
+                        lrs.SkiaBitmapLoadResizeSaveBenchmark();
+                        lrs.SkiaCanvasLoadResizeSaveBenchmark();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
                     break;
                 case ConsoleKey.D1:
-                    BenchmarkRunner.Run<Resize>(config);
+                    BenchmarkRunner.Run<Resize>(new ShortRunWithMemoryDiagnoserConfig());
                     break;
                 case ConsoleKey.D2:
-                    BenchmarkRunner.Run<LoadResizeSave>(config);
+                    BenchmarkRunner.Run<LoadResizeSave>(new ShortRunWithMemoryDiagnoserConfig());
                     break;
                 case ConsoleKey.D3:
-                    BenchmarkRunner.Run<LoadResizeSaveParallel>(config);
+                    BenchmarkRunner.Run<LoadResizeSaveParallel>(new ShortRunWithMemoryDiagnoserConfig());
                     break;
                 default:
                     Console.WriteLine("Unrecognized command.");
