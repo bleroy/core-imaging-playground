@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCore", "NetCore\NetCore.csproj", "{FEFA634F-60E6-4069-9021-86B55972C81F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreCompat", "CoreCompat\CoreCompat.csproj", "{6B263A84-3EDB-459D-9FAE-0510A29DD329}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,18 +27,6 @@ Global
 		{FEFA634F-60E6-4069-9021-86B55972C81F}.Release|x64.Build.0 = Release|Any CPU
 		{FEFA634F-60E6-4069-9021-86B55972C81F}.Release|x86.ActiveCfg = Release|Any CPU
 		{FEFA634F-60E6-4069-9021-86B55972C81F}.Release|x86.Build.0 = Release|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Debug|x64.Build.0 = Debug|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Debug|x86.Build.0 = Debug|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Release|x64.ActiveCfg = Release|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Release|x64.Build.0 = Release|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Release|x86.ActiveCfg = Release|Any CPU
-		{6B263A84-3EDB-459D-9FAE-0510A29DD329}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

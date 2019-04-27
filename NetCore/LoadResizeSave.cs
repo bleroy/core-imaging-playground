@@ -1,5 +1,9 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
@@ -11,6 +15,7 @@ using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.Primitives.Size;
+using SystemDrawingImage = System.Drawing.Image;
 
 namespace ImageProcessing
 {
@@ -26,12 +31,25 @@ namespace ImageProcessing
         private const string SkiaSharpCanvas = nameof(SkiaSharpCanvas);
         private const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
+        private static readonly ImageCodecInfo codec;
+        private static readonly EncoderParameters encoderParameters;
+
         // Set the quality for ImagSharp
         private static readonly JpegEncoder jpegEncoder = new JpegEncoder { Quality = Quality };
         private readonly IEnumerable<string> images;
         private readonly string outputDirectory;
 
-        static LoadResizeSave() => OpenCL.IsEnabled = false;
+        static LoadResizeSave()
+        {
+            // Initialize the encoder and parameters for System.Drawing
+            Encoder qualityParamId = Encoder.Quality;
+            encoderParameters = new EncoderParameters(1);
+            encoderParameters.Param[0] = new EncoderParameter(qualityParamId, (long)Quality);
+            codec = Array.Find(ImageCodecInfo.GetImageDecoders(), codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+
+            // Workaround ImageMagick issue
+            OpenCL.IsEnabled = false;
+        }
 
         public LoadResizeSave()
         {
@@ -83,6 +101,51 @@ namespace ImageProcessing
             }
 
             return (width, height);
+        }
+
+        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save")]
+        public void SystemDrawingResizeBenchmark()
+        {
+            foreach (string image in this.images)
+            {
+                SystemDrawingResize(image, ThumbnailSize, this.outputDirectory);
+            }
+        }
+
+        internal static void SystemDrawingResize(string path, int size, string outputDirectory)
+        {
+            using (var image = SystemDrawingImage.FromFile(path, true))
+            {
+                int width, height;
+                if (image.Width > image.Height)
+                {
+                    width = size;
+                    height = Convert.ToInt32(image.Height * size / (double)image.Width);
+                }
+                else
+                {
+                    width = Convert.ToInt32(image.Width * size / (double)image.Height);
+                    height = size;
+                }
+
+                using (var resized = new Bitmap(width, height))
+                using (var graphics = Graphics.FromImage(resized))
+                using (var attributes = new ImageAttributes())
+                {
+                    attributes.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    graphics.CompositingQuality = CompositingQuality.HighSpeed;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.CompositingMode = CompositingMode.SourceCopy;
+                    graphics.DrawImage(image, Rectangle.FromLTRB(0, 0, width, height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+
+                    // Save the results
+                    using (FileStream output = File.Open(OutputPath(path, outputDirectory, SystemDrawing), FileMode.Create))
+                    {
+                        resized.Save(output, codec, encoderParameters);
+                    }
+                }
+            }
         }
 
         [Benchmark(Description = "ImageSharp Load, Resize, Save")]

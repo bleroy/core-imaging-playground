@@ -1,6 +1,8 @@
-﻿using System;
+﻿
+using System;
 using System.Buffers;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
@@ -21,6 +23,26 @@ namespace ImageProcessing
         private const int ResizedHeight = 99;
 
         public Resize() => OpenCL.IsEnabled = false;
+
+        [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
+        public Size ResizeSystemDrawing()
+        {
+            using (var source = new Bitmap(Width, Height))
+            {
+                using (var destination = new Bitmap(ResizedWidth, ResizedHeight))
+                {
+                    using (var graphics = Graphics.FromImage(destination))
+                    {
+                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        graphics.CompositingQuality = CompositingQuality.HighSpeed;
+                        graphics.DrawImage(source, 0, 0, ResizedWidth, ResizedHeight);
+                    }
+
+                    return destination.Size;
+                }
+            }
+        }
 
         [Benchmark(Description = "ImageSharp Resize")]
         public ImageSharpSize ResizeImageSharp()

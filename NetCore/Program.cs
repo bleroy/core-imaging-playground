@@ -40,6 +40,7 @@ namespace ImageProcessing
             {
                 case ConsoleKey.D0:
                     var lrs = new LoadResizeSave();
+                    lrs.SystemDrawingResizeBenchmark();
                     lrs.ImageSharpBenchmark();
                     lrs.MagickResizeBenchmark();
                     lrs.FreeImageResizeBenchmark();
