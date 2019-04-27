@@ -13,7 +13,7 @@ namespace ImageProcessing
         public MultipleCliConfig()
         {
             this.Add(
-                Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp21).WithId(".Net Core 2.1 CLI")
+                Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp22).WithId(".Net Core 2.2 CLI")
                 .WithWarmupCount(3)
                 .WithIterationCount(3));
         }
