@@ -41,13 +41,19 @@ namespace ImageProcessing
         [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save - Parallel")]
         public void SystemDrawingResizeBenchmark()
         {
-            Parallel.ForEach(this.images, image => LoadResizeSave.SystemDrawingResize(image, ThumbnailSize, this.outputDirectory));
+            Parallel.ForEach(this.images, image =>
+            {
+                LoadResizeSave.SystemDrawingResize(image, ThumbnailSize, this.outputDirectory);
+            });
         }
 
         [Benchmark(Description = "ImageSharp Load, Resize, Save - Parallel")]
         public void ImageSharpResizeBenchmark()
         {
-            Parallel.ForEach(this.images, image => LoadResizeSave.ImageSharpResize(image, ThumbnailSize, this.outputDirectory));
+            Parallel.ForEach(this.images, image =>
+            {
+                LoadResizeSave.ImageSharpResize(image, ThumbnailSize, this.outputDirectory);
+            });
         }
 
         [Benchmark(Description = "ImageMagick Load, Resize, Save - Parallel")]
@@ -59,25 +65,37 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageFree Load, Resize, Save - Parallel")]
         public void FreeImageResizeBenchmark()
         {
-            Parallel.ForEach(this.images, image => LoadResizeSave.FreeImageResize(image, ThumbnailSize, this.outputDirectory));
+            Parallel.ForEach(this.images, image =>
+            {
+                LoadResizeSave.FreeImageResize(image, ThumbnailSize, this.outputDirectory);
+            });
         }
 
         [Benchmark(Description = "MagicScaler Load, Resize, Save - Parallel")]
         public void MagicScalerResizeBenchmark()
         {
-            Parallel.ForEach(this.images, image => LoadResizeSave.MagicScalerResize(image, ThumbnailSize, this.outputDirectory));
+            Parallel.ForEach(this.images, image =>
+            {
+                LoadResizeSave.MagicScalerResize(image, ThumbnailSize, this.outputDirectory);
+            });
         }
 
         [Benchmark(Description = "SkiaSharp Canvas Load, Resize, Save - Parallel")]
         public void SkiaCanvasResizeBenchmark()
         {
-            Parallel.ForEach(this.images, image => LoadResizeSave.SkiaCanvasLoadResizeSave(image, ThumbnailSize, this.outputDirectory));
+            Parallel.ForEach(this.images, image =>
+            {
+                LoadResizeSave.SkiaCanvasLoadResizeSave(image, ThumbnailSize, this.outputDirectory);
+            });
         }
 
         [Benchmark(Description = "SkiaSharp Bitmap Load, Resize, Save - Parallel")]
         public void SkiaBitmapResizeBenchmark()
         {
-            Parallel.ForEach(this.images, image => LoadResizeSave.SkiaBitmapLoadResizeSave(image, ThumbnailSize, this.outputDirectory));
+            Parallel.ForEach(this.images, image =>
+            {
+                LoadResizeSave.SkiaBitmapLoadResizeSave(image, ThumbnailSize, this.outputDirectory);
+            });
         }
     }
 }
