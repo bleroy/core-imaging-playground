@@ -1,9 +1,29 @@
-﻿using BenchmarkDotNet.Running;
 using System;
+using System.Linq;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Toolchains.CsProj;
 
 namespace ImageProcessing
 {
-    public class Program
+    public class ShortRunWithMemoryDiagnoserConfig : ManualConfig
+    {
+        public ShortRunWithMemoryDiagnoserConfig()
+        {
+            this.Add(
+                Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp22).WithId(".Net Core 2.2 CLI")
+                .WithWarmupCount(5)
+                .WithIterationCount(5));
+
+            this.Add(DefaultConfig.Instance.GetLoggers().ToArray());
+            this.Add(DefaultConfig.Instance.GetColumnProviders().ToArray());
+            this.Add(MemoryDiagnoser.Default);
+        }
+    }
+
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -22,7 +42,7 @@ namespace ImageProcessing
                     {
                         var lrs = new LoadResizeSave();
                         lrs.SystemDrawingResizeBenchmark();
-                        lrs.ImageSharpBenchmark();
+                        lrs.ImageSharpResizeBenchmark();
                         lrs.MagickResizeBenchmark();
                         lrs.FreeImageResizeBenchmark();
                         lrs.MagicScalerResizeBenchmark();
@@ -35,13 +55,13 @@ namespace ImageProcessing
                     }
                     break;
                 case ConsoleKey.D1:
-                    BenchmarkRunner.Run<Resize>();
+                    BenchmarkRunner.Run<Resize>(new ShortRunWithMemoryDiagnoserConfig());
                     break;
                 case ConsoleKey.D2:
-                    BenchmarkRunner.Run<LoadResizeSave>();
+                    BenchmarkRunner.Run<LoadResizeSave>(new ShortRunWithMemoryDiagnoserConfig());
                     break;
                 case ConsoleKey.D3:
-                    BenchmarkRunner.Run<LoadResizeSaveParallel>();
+                    BenchmarkRunner.Run<LoadResizeSaveParallel>(new ShortRunWithMemoryDiagnoserConfig());
                     break;
                 default:
                     Console.WriteLine("Unrecognized command.");

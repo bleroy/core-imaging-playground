@@ -1,45 +1,40 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using BenchmarkDotNet.Attributes;
-
-using ImageMagick;
 using FreeImageAPI;
+using ImageMagick;
 using PhotoSauce.MagicScaler;
-using SkiaSharp;
-
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.Primitives.Size;
 
 namespace ImageProcessing
 {
-    [MemoryDiagnoser]
     public class Resize
     {
-        const int Width = 1280;
-        const int Height = 853;
-        const int ResizedWidth = 150;
-        const int ResizedHeight = 99;
+        private const int Width = 1280;
+        private const int Height = 853;
+        private const int ResizedWidth = 150;
+        private const int ResizedHeight = 99;
 
-        public Resize()
-        {
-            OpenCL.IsEnabled = false;
-        }
+        public Resize() => OpenCL.IsEnabled = false;
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
         public Size ResizeSystemDrawing()
         {
-            using (Bitmap source = new Bitmap(Width, Height))
-            using (Bitmap destination = new Bitmap(ResizedWidth, ResizedHeight))
+            using (var source = new Bitmap(Width, Height))
+            using (var destination = new Bitmap(ResizedWidth, ResizedHeight))
             {
-                using (Graphics graphics = Graphics.FromImage(destination))
+                using (var graphics = Graphics.FromImage(destination))
                 {
-                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                    graphics.CompositingQuality = CompositingQuality.HighSpeed;
+                    graphics.CompositingMode = CompositingMode.SourceCopy;
+                    graphics.CompositingQuality = CompositingQuality.AssumeLinear;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     graphics.DrawImage(source, 0, 0, ResizedWidth, ResizedHeight);
                 }
 
@@ -60,8 +55,8 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageMagick Resize")]
         public MagickGeometry MagickResize()
         {
-            MagickGeometry size = new MagickGeometry(ResizedWidth, ResizedHeight);
-            using (MagickImage image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), Width, Height))
+            var size = new MagickGeometry(ResizedWidth, ResizedHeight);
+            using (var image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), Width, Height))
             {
                 image.Resize(size);
                 return size;
@@ -82,8 +77,8 @@ namespace ImageProcessing
         public Size MagicScalerResize()
         {
             // stride is width * bytes per pixel (3 for BGR), rounded up to the nearest multiple of 4
-            const uint stride = ResizedWidth * 3u + 3u & ~3u;
-            const uint bufflen = ResizedHeight * stride;
+            const int stride = (int)((ResizedWidth * 3u) + 3u & ~3u);
+            const int bufflen = ResizedHeight * stride;
 
             var settings = new ProcessImageSettings
             {
@@ -126,7 +121,7 @@ namespace ImageProcessing
         public SKSize SkiaBitmapResizeBenchmark()
         {
             using (var original = new SKBitmap(Width, Height))
-            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKBitmapResizeMethod.Lanczos3))
+            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.High))
             using (var image = SKImage.FromBitmap(resized))
             {
                 return new SKSize(image.Width, image.Height);
