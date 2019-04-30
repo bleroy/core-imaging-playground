@@ -59,7 +59,10 @@ namespace ImageProcessing
         [Benchmark(Description = "ImageMagick Load, Resize, Save - Parallel")]
         public void MagickResizeBenchmark()
         {
-            Parallel.ForEach(this.images, image => LoadResizeSave.MagickResize(image, ThumbnailSize, this.outputDirectory));
+            Parallel.ForEach(this.images, image =>
+            {
+                LoadResizeSave.MagickResize(image, ThumbnailSize, this.outputDirectory);
+            });
         }
 
         [Benchmark(Description = "ImageFree Load, Resize, Save - Parallel")]
