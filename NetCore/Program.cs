@@ -1,8 +1,12 @@
 using System;
-using System.Linq;
+using System.Runtime.InteropServices;
+using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
 
@@ -12,14 +16,26 @@ namespace ImageProcessing
     {
         public ShortRunWithMemoryDiagnoserConfig()
         {
-            this.Add(
-                Job.RyuJitX64.With(CsProjCoreToolchain.NetCoreApp22).WithId(".Net Core 2.2 CLI")
+            this.Add(Job.ShortRun
+                .With(CsProjCoreToolchain.NetCoreApp22)
+                .WithId(".Net Core 2.2 CLI")
                 .WithWarmupCount(5)
                 .WithIterationCount(5));
 
-            this.Add(DefaultConfig.Instance.GetLoggers().ToArray());
-            this.Add(DefaultConfig.Instance.GetColumnProviders().ToArray());
+            this.Add(DefaultColumnProviders.Instance);
+            this.Add(ConsoleLogger.Default);
+            this.Add(MarkdownExporter.GitHub);
             this.Add(MemoryDiagnoser.Default);
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // MagicScaler requires Windows Imaging Component (WIC) which is only available on Windows
+                this.Add(new NameFilter(name => !name.StartsWith("MagicScaler")));
+            }
+
+            // Disable this policy because the benchmarks refer
+            // to a non-optimized SkiaSharp that we do not own.
+            this.Options |= ConfigOptions.DisableOptimizationsValidator;
         }
     }
 
@@ -27,6 +43,8 @@ namespace ImageProcessing
     {
         public static void Main(string[] args)
         {
+            var config = new ShortRunWithMemoryDiagnoserConfig();
+
             Console.WriteLine(@"Choose an image resizing benchmarks:
 
 0. Just run ""Load, Resize, Save"" once, don't benchmark
@@ -41,13 +59,17 @@ namespace ImageProcessing
                     try
                     {
                         var lrs = new LoadResizeSave();
-                        lrs.SystemDrawingResizeBenchmark();
-                        lrs.ImageSharpResizeBenchmark();
-                        lrs.MagickResizeBenchmark();
-                        lrs.FreeImageResizeBenchmark();
-                        lrs.MagicScalerResizeBenchmark();
-                        lrs.SkiaBitmapLoadResizeSaveBenchmark();
-                        lrs.SkiaCanvasLoadResizeSaveBenchmark();
+                        lrs.SystemDrawingBenchmark();
+                        lrs.ImageSharpBenchmark();
+                        lrs.MagickBenchmark();
+                        lrs.FreeImageBenchmark();
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            lrs.MagicScalerBenchmark();
+                        }
+                        lrs.SkiaBitmapBenchmark();
+                        lrs.SkiaCanvasBenchmark();
+                        lrs.NetVipsBenchmark();
                     }
                     catch (Exception ex)
                     {
@@ -55,13 +77,15 @@ namespace ImageProcessing
                     }
                     break;
                 case ConsoleKey.D1:
-                    BenchmarkRunner.Run<Resize>(new ShortRunWithMemoryDiagnoserConfig());
+                    BenchmarkRunner.Run<Resize>(config);
                     break;
                 case ConsoleKey.D2:
-                    BenchmarkRunner.Run<LoadResizeSave>(new ShortRunWithMemoryDiagnoserConfig());
+                    BenchmarkRunner.Run<LoadResizeSave>(config);
                     break;
                 case ConsoleKey.D3:
-                    BenchmarkRunner.Run<LoadResizeSaveParallel>(new ShortRunWithMemoryDiagnoserConfig());
+                    // Only run the *Parallel benchmarks
+                    BenchmarkRunner.Run<LoadResizeSaveParallel>(config
+                        .With(new NameFilter(name => name.EndsWith("Parallel"))));
                     break;
                 default:
                     Console.WriteLine("Unrecognized command.");

@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
+using NetVips;
 using PhotoSauce.MagicScaler;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -126,6 +127,22 @@ namespace ImageProcessing
             {
                 return new SKSize(image.Width, image.Height);
             }
+        }
+
+        [Benchmark(Description = "NetVips Resize")]
+        public (int width, int height) NetVipsResize()
+        {
+            // Scaling calculations
+            const double xFactor = (double)Width / ResizedWidth;
+            const double yFactor = (double)Height / ResizedHeight;
+
+            // Make a black image
+            var image = NetVips.Image.Black(Width, Height);
+
+            // Resize
+            image = image.Reduce(xFactor, yFactor, kernel: Enums.Kernel.Linear);
+
+            return (image.Width, image.Height);
         }
     }
 }
