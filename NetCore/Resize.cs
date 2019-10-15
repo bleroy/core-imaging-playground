@@ -59,8 +59,7 @@ namespace ImageProcessing
             var size = new MagickGeometry(ResizedWidth, ResizedHeight);
             using (var image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), Width, Height))
             {
-                // 'Catrom' is generally imprecisely known as 'BiCubic' interpolation
-                image.FilterType = FilterType.Catrom;
+                image.FilterType = FilterType.Cubic;
 
                 image.Resize(size);
                 return size;
@@ -126,7 +125,7 @@ namespace ImageProcessing
         public SKSize SkiaBitmapResizeBenchmark()
         {
             using (var original = new SKBitmap(Width, Height))
-            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.Medium))
+            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.High))
             using (var image = SKImage.FromBitmap(resized))
             {
                 return new SKSize(image.Width, image.Height);
@@ -134,20 +133,20 @@ namespace ImageProcessing
         }
 
         [Benchmark(Description = "NetVips Resize")]
-        public (int width, int height, byte[] memory) NetVipsResize()
+        public (int width, int height) NetVipsResize()
         {
             // Scaling calculations
-            const double xFactor = (double)Width / ResizedWidth;
-            const double yFactor = (double)Height / ResizedHeight;
+            const double xFactor = (double)ResizedWidth / Width;
+            const double yFactor = (double)ResizedHeight / Height;
 
             using (var original = NetVips.Image.Black(Width, Height))
-            using (var resized = original.Resize(1.0 / xFactor, vscale: 1.0 / yFactor, kernel: Enums.Kernel.Cubic))
+            using (var resized = original.Resize(xFactor, vscale: yFactor, kernel: Enums.Kernel.Cubic))
             {
                 // libvips is "lazy" and will not process pixels
                 // until you write to an output file, buffer or memory
-                var memory = resized.WriteToMemory();
+                var _ = resized.WriteToMemory();
 
-                return (resized.Width, resized.Height, memory);
+                return (resized.Width, resized.Height);
             }
         }
     }
