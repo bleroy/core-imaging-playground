@@ -48,7 +48,7 @@ namespace ImageProcessing
         {
             using (var image = new ImageSharpImage(Width, Height))
             {
-                image.Mutate(i => i.Resize(ResizedWidth, ResizedHeight));
+                image.Mutate(i => i.Resize(ResizedWidth, ResizedHeight, KnownResamplers.Bicubic));
                 return image.Size();
             }
         }
@@ -59,6 +59,9 @@ namespace ImageProcessing
             var size = new MagickGeometry(ResizedWidth, ResizedHeight);
             using (var image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), Width, Height))
             {
+                // 'Catrom' is generally imprecisely known as 'BiCubic' interpolation
+                image.FilterType = FilterType.Catrom;
+
                 image.Resize(size);
                 return size;
             }
@@ -85,7 +88,8 @@ namespace ImageProcessing
             {
                 Width = ResizedWidth,
                 Height = ResizedHeight,
-                Sharpen = false
+                Sharpen = false,
+                Interpolation = InterpolationSettings.Cubic
             };
 
             using (var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp))
@@ -122,7 +126,7 @@ namespace ImageProcessing
         public SKSize SkiaBitmapResizeBenchmark()
         {
             using (var original = new SKBitmap(Width, Height))
-            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.High))
+            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.Medium))
             using (var image = SKImage.FromBitmap(resized))
             {
                 return new SKSize(image.Width, image.Height);
@@ -130,16 +134,20 @@ namespace ImageProcessing
         }
 
         [Benchmark(Description = "NetVips Resize")]
-        public (int width, int height) NetVipsResize()
+        public (int width, int height, byte[] memory) NetVipsResize()
         {
             // Scaling calculations
             const double xFactor = (double)Width / ResizedWidth;
             const double yFactor = (double)Height / ResizedHeight;
 
-            using (var original = NetVips.Image.Black(Width, Height).CopyMemory())
-            using (var resized = original.Reduce(xFactor, yFactor, kernel: Enums.Kernel.Cubic).CopyMemory())
+            using (var original = NetVips.Image.Black(Width, Height))
+            using (var resized = original.Resize(1.0 / xFactor, vscale: 1.0 / yFactor, kernel: Enums.Kernel.Cubic))
             {
-	            return (resized.Width, resized.Height);
+                // libvips is "lazy" and will not process pixels
+                // until you write to an output file, buffer or memory
+                var memory = resized.WriteToMemory();
+
+                return (resized.Width, resized.Height, memory);
             }
         }
     }
