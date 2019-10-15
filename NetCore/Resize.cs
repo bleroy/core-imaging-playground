@@ -78,7 +78,7 @@ namespace ImageProcessing
         public Size MagicScalerResize()
         {
             // stride is width * bytes per pixel (3 for BGR), rounded up to the nearest multiple of 4
-            const int stride = (int)((ResizedWidth * 3u) + 3u & ~3u);
+            const int stride = ResizedWidth * 3 + 3 & ~3;
             const int bufflen = ResizedHeight * stride;
 
             var settings = new ProcessImageSettings
@@ -92,8 +92,8 @@ namespace ImageProcessing
             using (var pipeline = MagicImageProcessor.BuildPipeline(pixels, settings))
             {
                 var rect = new Rectangle(0, 0, ResizedWidth, ResizedHeight);
-                var buffer = ArrayPool<byte>.Shared.Rent((int)bufflen);
-                pipeline.PixelSource.CopyPixels(rect, (int)stride, new Span<byte>(buffer, 0, (int)bufflen));
+                var buffer = ArrayPool<byte>.Shared.Rent(bufflen);
+                pipeline.PixelSource.CopyPixels(rect, stride, new Span<byte>(buffer, 0, bufflen));
                 ArrayPool<byte>.Shared.Return(buffer);
                 return rect.Size;
             }
@@ -136,13 +136,11 @@ namespace ImageProcessing
             const double xFactor = (double)Width / ResizedWidth;
             const double yFactor = (double)Height / ResizedHeight;
 
-            // Make a black image
-            var image = NetVips.Image.Black(Width, Height);
-
-            // Resize
-            image = image.Reduce(xFactor, yFactor, kernel: Enums.Kernel.Linear);
-
-            return (image.Width, image.Height);
+            using (var original = NetVips.Image.Black(Width, Height).CopyMemory())
+            using (var resized = original.Reduce(xFactor, yFactor, kernel: Enums.Kernel.Cubic).CopyMemory())
+            {
+	            return (resized.Width, resized.Height);
+            }
         }
     }
 }

@@ -17,8 +17,13 @@ namespace ImageProcessing
         public ShortRunWithMemoryDiagnoserConfig()
         {
             this.Add(Job.ShortRun
-                .With(CsProjCoreToolchain.NetCoreApp22)
-                .WithId(".Net Core 2.2 CLI")
+#if NETCOREAPP2_1
+                .With(CsProjCoreToolchain.NetCoreApp21)
+                .WithId(".Net Core 2.1 CLI")
+#elif NETCOREAPP3_0
+                .With(CsProjCoreToolchain.NetCoreApp30)
+                .WithId(".Net Core 3.0 CLI")
+#endif
                 .WithWarmupCount(5)
                 .WithIterationCount(5));
 
