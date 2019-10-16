@@ -48,7 +48,7 @@ namespace ImageProcessing
         {
             using (var image = new ImageSharpImage(Width, Height))
             {
-                image.Mutate(i => i.Resize(ResizedWidth, ResizedHeight));
+                image.Mutate(i => i.Resize(ResizedWidth, ResizedHeight, KnownResamplers.Bicubic));
                 return image.Size();
             }
         }
@@ -59,6 +59,8 @@ namespace ImageProcessing
             var size = new MagickGeometry(ResizedWidth, ResizedHeight);
             using (var image = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), Width, Height))
             {
+                image.FilterType = FilterType.Cubic;
+
                 image.Resize(size);
                 return size;
             }
@@ -85,7 +87,8 @@ namespace ImageProcessing
             {
                 Width = ResizedWidth,
                 Height = ResizedHeight,
-                Sharpen = false
+                Sharpen = false,
+                Interpolation = InterpolationSettings.Cubic
             };
 
             using (var pixels = new TestPatternPixelSource(Width, Height, PixelFormats.Bgr24bpp))
@@ -133,13 +136,17 @@ namespace ImageProcessing
         public (int width, int height) NetVipsResize()
         {
             // Scaling calculations
-            const double xFactor = (double)Width / ResizedWidth;
-            const double yFactor = (double)Height / ResizedHeight;
+            const double xFactor = (double)ResizedWidth / Width;
+            const double yFactor = (double)ResizedHeight / Height;
 
-            using (var original = NetVips.Image.Black(Width, Height).CopyMemory())
-            using (var resized = original.Reduce(xFactor, yFactor, kernel: Enums.Kernel.Cubic).CopyMemory())
+            using (var original = NetVips.Image.Black(Width, Height))
+            using (var resized = original.Resize(xFactor, vscale: yFactor, kernel: Enums.Kernel.Cubic))
             {
-	            return (resized.Width, resized.Height);
+                // libvips is "lazy" and will not process pixels
+                // until you write to an output file, buffer or memory
+                var _ = resized.WriteToMemory();
+
+                return (resized.Width, resized.Height);
             }
         }
     }
