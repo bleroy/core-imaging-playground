@@ -3,6 +3,10 @@ using System.Runtime.InteropServices;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+#if Windows_NT
+using System.Security.Principal;
+using BenchmarkDotNet.Diagnostics.Windows;
+#endif
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Jobs;
@@ -16,32 +20,49 @@ namespace ImageProcessing
     {
         public ShortRunWithMemoryDiagnoserConfig()
         {
-            this.Add(Job.ShortRun
+            this.AddJob(Job.ShortRun
 #if NETCOREAPP2_1
-                .With(CsProjCoreToolchain.NetCoreApp21)
+                .WithToolchain(CsProjCoreToolchain.NetCoreApp21)
                 .WithId(".Net Core 2.1 CLI")
-#elif NETCOREAPP3_0
-                .With(CsProjCoreToolchain.NetCoreApp30)
-                .WithId(".Net Core 3.0 CLI")
+#elif NETCOREAPP3_1
+                .WithToolchain(CsProjCoreToolchain.NetCoreApp31)
+                .WithId(".Net Core 3.1 CLI")
 #endif
                 .WithWarmupCount(5)
                 .WithIterationCount(5));
 
-            this.Add(DefaultColumnProviders.Instance);
-            this.Add(ConsoleLogger.Default);
-            this.Add(MarkdownExporter.GitHub);
-            this.Add(MemoryDiagnoser.Default);
+            this.AddColumnProvider(DefaultColumnProviders.Instance);
+            this.AddLogger(ConsoleLogger.Default);
+            this.AddExporter(MarkdownExporter.GitHub);
+            this.AddDiagnoser(MemoryDiagnoser.Default);
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // MagicScaler requires Windows Imaging Component (WIC) which is only available on Windows
-                this.Add(new NameFilter(name => !name.StartsWith("MagicScaler")));
+                this.AddFilter(new NameFilter(name => !name.StartsWith("MagicScaler")));
             }
 
             // Disable this policy because the benchmarks refer
             // to a non-optimized SkiaSharp that we do not own.
             this.Options |= ConfigOptions.DisableOptimizationsValidator;
+
+#if Windows_NT
+            if (this.IsElevated)
+            {
+                this.AddDiagnoser(new NativeMemoryProfiler());
+            }
+#endif
         }
+
+#if Windows_NT
+        private bool IsElevated
+        {
+            get
+            {
+                return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+#endif
     }
 
     public static class Program
@@ -90,7 +111,7 @@ namespace ImageProcessing
                 case ConsoleKey.D3:
                     // Only run the *Parallel benchmarks
                     BenchmarkRunner.Run<LoadResizeSaveParallel>(config
-                        .With(new NameFilter(name => name.EndsWith("Parallel"))));
+                        .AddFilter(new NameFilter(name => name.EndsWith("Parallel"))));
                     break;
                 default:
                     Console.WriteLine("Unrecognized command.");
