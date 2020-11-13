@@ -13,7 +13,7 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
-using ImageSharpSize = SixLabors.Primitives.Size;
+using ImageSharpSize = SixLabors.ImageSharp.Size;
 using NetVipsImage = NetVips.Image;
 using SystemDrawingImage = System.Drawing.Image;
 

@@ -10,8 +10,10 @@ using PhotoSauce.MagicScaler;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
+using Size = System.Drawing.Size;
+using Rectangle = System.Drawing.Rectangle;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
-using ImageSharpSize = SixLabors.Primitives.Size;
+using ImageSharpSize = SixLabors.ImageSharp.Size;
 
 namespace ImageProcessing
 {
