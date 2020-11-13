@@ -27,7 +27,11 @@ namespace ImageProcessing
 #elif NETCOREAPP3_1
                 .WithToolchain(CsProjCoreToolchain.NetCoreApp31)
                 .WithId(".Net Core 3.1 CLI")
+#else
+                .WithToolchain(CsProjCoreToolchain.NetCoreApp50)
+                .WithId(".Net 5.0 CLI")
 #endif
+
                 .WithWarmupCount(5)
                 .WithIterationCount(5));
 
