@@ -32,10 +32,10 @@ namespace ImageProcessing
             {
                 // Workaround ImageMagick issue
                 OpenCL.IsEnabled = false;
-
-                // Disable libvips operations cache
-                NetVipsUtil.CacheSetMax(0);
             }
+
+            // Disable libvips operations cache
+            NetVipsUtil.CacheSetMax(0);
         }
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
