@@ -15,6 +15,7 @@ using Size = System.Drawing.Size;
 using Rectangle = System.Drawing.Rectangle;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
+using NetVipsUtil = NetVips.NetVips;
 
 namespace ImageProcessing
 {
@@ -31,6 +32,9 @@ namespace ImageProcessing
             {
                 // Workaround ImageMagick issue
                 OpenCL.IsEnabled = false;
+
+                // Disable libvips operations cache
+                NetVipsUtil.CacheSetMax(0);
             }
         }
 
