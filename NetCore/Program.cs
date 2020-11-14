@@ -46,7 +46,7 @@ namespace ImageProcessing
                 this.AddFilter(new NameFilter(name => !name.StartsWith("MagicScalerBenchmark")));
             }
 
-            if (RuntimeInformation.OSArchitecture is not Architecture.X86 or Architecture.X64)
+            if (RuntimeInformation.OSArchitecture is not (Architecture.X86 or Architecture.X64))
             {
                 // ImageMagick native binaries are currently only available for X86 and X64
                 this.AddFilter(new NameFilter(name => !name.StartsWith("Magick")));
