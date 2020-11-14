@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
@@ -24,7 +25,14 @@ namespace ImageProcessing
         private const int ResizedWidth = 150;
         private const int ResizedHeight = 99;
 
-        public Resize() => OpenCL.IsEnabled = false;
+        public Resize()
+        {
+            if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
+            {
+                // Workaround ImageMagick issue
+                OpenCL.IsEnabled = false;
+            }
+        }
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
         public Size ResizeSystemDrawing()
@@ -141,7 +149,7 @@ namespace ImageProcessing
             const double xFactor = (double)ResizedWidth / Width;
             const double yFactor = (double)ResizedHeight / Height;
 
-            using (var original = NetVips.Image.Black(Width, Height))
+            using (var original = NetVips.Image.Black(Width, Height).CopyMemory())
             using (var resized = original.Resize(xFactor, vscale: yFactor, kernel: Enums.Kernel.Cubic))
             {
                 // libvips is "lazy" and will not process pixels
