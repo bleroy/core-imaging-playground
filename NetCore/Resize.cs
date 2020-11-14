@@ -154,7 +154,7 @@ namespace ImageProcessing
             {
                 // libvips is "lazy" and will not process pixels
                 // until you write to an output file, buffer or memory
-                var _ = resized.WriteToMemory();
+                var _ = resized.CopyMemory();
 
                 return (resized.Width, resized.Height);
             }

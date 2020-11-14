@@ -6,6 +6,7 @@
     <AssemblyName>NetCore</AssemblyName>
     <OutputType>Exe</OutputType>
     <Optimize>true</Optimize>
+    <LangVersion>9</LangVersion>
     <RootNamespace>ImageProcessing</RootNamespace>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
