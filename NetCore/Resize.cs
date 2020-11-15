@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
@@ -14,6 +15,7 @@ using Size = System.Drawing.Size;
 using Rectangle = System.Drawing.Rectangle;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
+using NetVipsUtil = NetVips.NetVips;
 
 namespace ImageProcessing
 {
@@ -24,7 +26,17 @@ namespace ImageProcessing
         private const int ResizedWidth = 150;
         private const int ResizedHeight = 99;
 
-        public Resize() => OpenCL.IsEnabled = false;
+        public Resize()
+        {
+            if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
+            {
+                // Workaround ImageMagick issue
+                OpenCL.IsEnabled = false;
+            }
+
+            // Disable libvips operations cache
+            NetVipsUtil.CacheSetMax(0);
+        }
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
         public Size ResizeSystemDrawing()
@@ -141,12 +153,12 @@ namespace ImageProcessing
             const double xFactor = (double)ResizedWidth / Width;
             const double yFactor = (double)ResizedHeight / Height;
 
-            using (var original = NetVips.Image.Black(Width, Height))
+            using (var original = NetVips.Image.Black(Width, Height, 3))
             using (var resized = original.Resize(xFactor, vscale: yFactor, kernel: Enums.Kernel.Cubic))
             {
                 // libvips is "lazy" and will not process pixels
                 // until you write to an output file, buffer or memory
-                var _ = resized.WriteToMemory();
+                var _ = resized.CopyMemory();
 
                 return (resized.Width, resized.Height);
             }

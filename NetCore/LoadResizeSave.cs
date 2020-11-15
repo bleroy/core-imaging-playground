@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
@@ -43,14 +44,14 @@ namespace ImageProcessing
         // TODO: https://github.com/dotnet/BenchmarkDotNet/issues/258
         public const int ImagesCount = 12;
 
-        static LoadResizeSave()
-        {
-            // Workaround ImageMagick issue
-            OpenCL.IsEnabled = false;
-        }
-
         public LoadResizeSave()
         {
+            if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
+            {
+                // Workaround ImageMagick issue
+                OpenCL.IsEnabled = false;
+            }
+
             // Find the closest images directory
             string imageDirectory = Path.GetFullPath(".");
             while (!Directory.Exists(Path.Combine(imageDirectory, "images")))

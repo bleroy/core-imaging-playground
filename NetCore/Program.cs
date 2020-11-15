@@ -43,12 +43,14 @@ namespace ImageProcessing
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // MagicScaler requires Windows Imaging Component (WIC) which is only available on Windows
-                this.AddFilter(new NameFilter(name => !name.StartsWith("MagicScaler")));
+                this.AddFilter(new NameFilter(name => !name.StartsWith("MagicScalerBenchmark")));
             }
 
-            // Disable this policy because the benchmarks refer
-            // to a non-optimized SkiaSharp that we do not own.
-            this.Options |= ConfigOptions.DisableOptimizationsValidator;
+            if (RuntimeInformation.OSArchitecture is not (Architecture.X86 or Architecture.X64))
+            {
+                // ImageMagick native binaries are currently only available for X86 and X64
+                this.AddFilter(new NameFilter(name => !name.StartsWith("Magick")));
+            }
 
 #if Windows_NT
             if (this.IsElevated)
@@ -91,7 +93,10 @@ namespace ImageProcessing
                         var lrs = new LoadResizeSave();
                         lrs.SystemDrawingBenchmark();
                         lrs.ImageSharpBenchmark();
-                        lrs.MagickBenchmark();
+                        if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
+                        {
+                            lrs.MagickBenchmark();
+                        }
                         lrs.FreeImageBenchmark();
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         {
