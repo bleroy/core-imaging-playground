@@ -31,9 +31,13 @@ namespace ImageProcessing
                 .WithToolchain(CsProjCoreToolchain.NetCoreApp50)
                 .WithId(".Net 5.0 CLI")
 #endif
-
                 .WithWarmupCount(5)
-                .WithIterationCount(5));
+                .WithIterationCount(5)
+                .WithArguments(new Argument[]
+                {
+                    // See https://github.com/dotnet/roslyn/issues/42393
+                    new MsBuildArgument("/p:DebugType=portable")
+                }));
 
             this.AddColumnProvider(DefaultColumnProviders.Instance);
             this.AddLogger(ConsoleLogger.Default);
@@ -52,8 +56,16 @@ namespace ImageProcessing
                 this.AddFilter(new NameFilter(name => !name.StartsWith("Magick")));
             }
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                RuntimeInformation.OSArchitecture == Architecture.Arm64)
+            {
+                // FreeImage native binaries are not available for Windows ARM64
+                this.AddFilter(new NameFilter(name => !name.StartsWith("FreeImage")));
+            }
+
 #if Windows_NT
-            if (this.IsElevated)
+            // See https://github.com/microsoft/perfview/issues/1264
+            if (this.IsElevated && RuntimeInformation.OSArchitecture != Architecture.Arm64)
             {
                 this.AddDiagnoser(new NativeMemoryProfiler());
             }
@@ -97,7 +109,11 @@ namespace ImageProcessing
                         {
                             lrs.MagickBenchmark();
                         }
-                        lrs.FreeImageBenchmark();
+                        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                            RuntimeInformation.OSArchitecture != Architecture.Arm64)
+                        {
+                            lrs.FreeImageBenchmark();
+                        }
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         {
                             lrs.MagicScalerBenchmark();
