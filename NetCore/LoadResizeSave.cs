@@ -13,6 +13,7 @@ using PhotoSauce.MagicScaler;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
+using NetVips;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
 using NetVipsImage = NetVips.Image;
@@ -51,6 +52,9 @@ namespace ImageProcessing
                 // Workaround ImageMagick issue
                 OpenCL.IsEnabled = false;
             }
+
+            // Disable libvips operations cache
+            Cache.Max = 0;
 
             // Find the closest images directory
             string imageDirectory = Path.GetFullPath(".");

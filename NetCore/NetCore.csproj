@@ -16,20 +16,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.1.1514" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1.1514" Condition="'$(OS)' == 'Windows_NT'" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.0" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     <PackageReference Include="FreeImage.Standard" Version="4.3.8" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.23.2" />
-    <PackageReference Include="NetVips" Version="1.2.4" />
-    <PackageReference Include="PhotoSauce.MagicScaler" Version="0.11.2" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.24.1" />
+    <PackageReference Include="NetVips" Version="2.0.1" />
+    <PackageReference Include="PhotoSauce.MagicScaler" Version="0.12.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
     <PackageReference Include="SkiaSharp" Version="2.80.2" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(BenchmarkWithNuGetBinaries)' == 'true'">
-    <PackageReference Include="NetVips.Native" Version="8.10.5.1" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
+    <PackageReference Include="NetVips.Native" Version="8.11.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
   </ItemGroup>
 
   <ItemGroup>
