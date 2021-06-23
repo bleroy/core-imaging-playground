@@ -15,7 +15,6 @@ using Size = System.Drawing.Size;
 using Rectangle = System.Drawing.Rectangle;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
-using NetVipsUtil = NetVips.NetVips;
 
 namespace ImageProcessing
 {
@@ -35,7 +34,7 @@ namespace ImageProcessing
             }
 
             // Disable libvips operations cache
-            NetVipsUtil.CacheSetMax(0);
+            Cache.Max = 0;
         }
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
