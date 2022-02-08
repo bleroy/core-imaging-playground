@@ -168,6 +168,8 @@ namespace ImageProcessing
 
                     // Reduce the size of the file
                     image.Metadata.ExifProfile = null;
+                    image.Metadata.XmpProfile = null;
+                    image.Metadata.IptcProfile = null;
 
                     // Save the results
                     image.Save(output, imageSharpJpegEncoder);
