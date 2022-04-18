@@ -119,7 +119,6 @@ namespace ImageProcessing
                             lrs.MagicScalerBenchmark();
                         }
                         lrs.SkiaBitmapBenchmark();
-                        lrs.SkiaCanvasBenchmark();
                         lrs.NetVipsBenchmark();
                     }
                     catch (Exception ex)
