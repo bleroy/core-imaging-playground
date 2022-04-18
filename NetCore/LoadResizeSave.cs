@@ -35,7 +35,7 @@ namespace ImageProcessing
         private const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
         // Set the quality for ImagSharp
-        private readonly JpegEncoder imageSharpJpegEncoder = new JpegEncoder { Quality = Quality };
+        private readonly JpegEncoder imageSharpJpegEncoder = new JpegEncoder { Quality = Quality, ColorType = JpegColorType.YCbCrRatio420 };
         private readonly ImageCodecInfo systemDrawingJpegCodec =
             ImageCodecInfo.GetImageEncoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
@@ -168,6 +168,8 @@ namespace ImageProcessing
 
                     // Reduce the size of the file
                     image.Metadata.ExifProfile = null;
+                    image.Metadata.IptcProfile = null;
+                    image.Metadata.XmpProfile = null;
 
                     // Save the results
                     image.Save(output, imageSharpJpegEncoder);
@@ -299,8 +301,20 @@ namespace ImageProcessing
             // Thumbnail to fit a 150x150 square
             using (var thumb = NetVipsImage.Thumbnail(input, ThumbnailSize, ThumbnailSize))
             {
+                // Remove all metadata except color profile
+                using var mutated = thumb.Mutate(mutable =>
+                {
+                    foreach (var field in mutable.GetFields())
+                    {
+                        if (field == "icc-profile-data")
+                          continue;
+
+                        mutable.Remove(field);
+                    }
+                });
+
                 // Save the results
-                thumb.Jpegsave(OutputPath(input, NetVips), q: Quality, strip: true);
+                mutated.Jpegsave(OutputPath(input, NetVips), q: Quality);
             }
         }
     }
