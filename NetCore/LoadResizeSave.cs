@@ -252,40 +252,7 @@ namespace ImageProcessing
             MagicImageProcessor.ProcessImage(input, OutputPath(input, MagicScaler), settings);
         }
 
-        [Benchmark(Description = "SkiaSharp Canvas Load, Resize, Save"/*,
-            OperationsPerInvoke = ImagesCount*/)]
-        public void SkiaCanvasBenchmark()
-        {
-            foreach (string image in Images)
-            {
-                SkiaCanvasResize(image);
-            }
-        }
-
-        public void SkiaCanvasResize(string input)
-        {
-            using (var original = SKBitmap.Decode(input))
-            {
-                var scaled = ScaledSize(original.Width, original.Height, ThumbnailSize);
-                using (var surface = SKSurface.Create(new SKImageInfo(scaled.width, scaled.height, original.ColorType, original.AlphaType)))
-                using (var paint = new SKPaint() { FilterQuality = SKFilterQuality.High })
-                {
-                    var canvas = surface.Canvas;
-                    canvas.Scale((float)scaled.width / original.Width);
-                    canvas.DrawBitmap(original, 0, 0, paint);
-                    canvas.Flush();
-
-                    using (var output = File.OpenWrite(OutputPath(input, SkiaSharpCanvas)))
-                    {
-                        surface.Snapshot()
-                            .Encode(SKEncodedImageFormat.Jpeg, Quality)
-                            .SaveTo(output);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(Description = "SkiaSharp Bitmap Load, Resize, Save"/*,
+        [Benchmark(Description = "SkiaSharp Load, Resize, Save"/*,
             OperationsPerInvoke = ImagesCount*/)]
         public void SkiaBitmapBenchmark()
         {
