@@ -35,7 +35,7 @@ namespace ImageProcessing
         private const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
         // Set the quality for ImagSharp
-        private readonly JpegEncoder imageSharpJpegEncoder = new JpegEncoder { Quality = Quality };
+        private readonly JpegEncoder imageSharpJpegEncoder = new JpegEncoder { Quality = Quality, ColorType = JpegColorType.YCbCrRatio420 };
         private readonly ImageCodecInfo systemDrawingJpegCodec =
             ImageCodecInfo.GetImageEncoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
@@ -168,6 +168,8 @@ namespace ImageProcessing
 
                     // Reduce the size of the file
                     image.Metadata.ExifProfile = null;
+                    image.Metadata.IptcProfile = null;
+                    image.Metadata.XmpProfile = null;
 
                     // Save the results
                     image.Save(output, imageSharpJpegEncoder);
@@ -218,12 +220,14 @@ namespace ImageProcessing
             using (var original = FreeImageBitmap.FromFile(input))
             {
                 var scaled = ScaledSize(original.Width, original.Height, ThumbnailSize);
-                var resized = new FreeImageBitmap(original, scaled.width, scaled.height);
-                // JPEG_QUALITYGOOD is 75 JPEG.
-                // JPEG_BASELINE strips metadata (EXIF, etc.)
-                resized.Save(OutputPath(input, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
-                    FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
-                    FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
+                using (var resized = new FreeImageBitmap(original, scaled.width, scaled.height))
+                {
+                    // JPEG_QUALITYGOOD is 75 JPEG.
+                    // JPEG_BASELINE strips metadata (EXIF, etc.)
+                    resized.Save(OutputPath(input, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
+                        FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
+                        FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
+                }
             }
         }
 
@@ -244,51 +248,13 @@ namespace ImageProcessing
                 Width = ThumbnailSize,
                 Height = ThumbnailSize,
                 ResizeMode = CropScaleMode.Max,
-                SaveFormat = FileFormat.Jpeg,
-                JpegQuality = Quality,
-                JpegSubsampleMode = ChromaSubsampleMode.Subsample420
+                EncoderOptions = new JpegEncoderOptions(Quality, ChromaSubsampleMode.Subsample420, true)
             };
 
-            using (var output = new FileStream(OutputPath(input, MagicScaler), FileMode.Create))
-            {
-                MagicImageProcessor.ProcessImage(input, output, settings);
-            }
+            MagicImageProcessor.ProcessImage(input, OutputPath(input, MagicScaler), settings);
         }
 
-        [Benchmark(Description = "SkiaSharp Canvas Load, Resize, Save"/*,
-            OperationsPerInvoke = ImagesCount*/)]
-        public void SkiaCanvasBenchmark()
-        {
-            foreach (string image in Images)
-            {
-                SkiaCanvasResize(image);
-            }
-        }
-
-        public void SkiaCanvasResize(string input)
-        {
-            using (var original = SKBitmap.Decode(input))
-            {
-                var scaled = ScaledSize(original.Width, original.Height, ThumbnailSize);
-                using (var surface = SKSurface.Create(new SKImageInfo(scaled.width, scaled.height, original.ColorType, original.AlphaType)))
-                using (var paint = new SKPaint() { FilterQuality = SKFilterQuality.High })
-                {
-                    var canvas = surface.Canvas;
-                    canvas.Scale((float)scaled.width / original.Width);
-                    canvas.DrawBitmap(original, 0, 0, paint);
-                    canvas.Flush();
-
-                    using (var output = File.OpenWrite(OutputPath(input, SkiaSharpCanvas)))
-                    {
-                        surface.Snapshot()
-                            .Encode(SKEncodedImageFormat.Jpeg, Quality)
-                            .SaveTo(output);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(Description = "SkiaSharp Bitmap Load, Resize, Save"/*,
+        [Benchmark(Description = "SkiaSharp Load, Resize, Save"/*,
             OperationsPerInvoke = ImagesCount*/)]
         public void SkiaBitmapBenchmark()
         {
@@ -335,8 +301,20 @@ namespace ImageProcessing
             // Thumbnail to fit a 150x150 square
             using (var thumb = NetVipsImage.Thumbnail(input, ThumbnailSize, ThumbnailSize))
             {
+                // Remove all metadata except color profile
+                using var mutated = thumb.Mutate(mutable =>
+                {
+                    foreach (var field in mutable.GetFields())
+                    {
+                        if (field == "icc-profile-data")
+                          continue;
+
+                        mutable.Remove(field);
+                    }
+                });
+
                 // Save the results
-                thumb.Jpegsave(OutputPath(input, NetVips), q: Quality, strip: true);
+                mutated.Jpegsave(OutputPath(input, NetVips), q: Quality);
             }
         }
     }

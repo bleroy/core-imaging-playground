@@ -77,7 +77,7 @@ namespace ImageProcessing
         {
             get
             {
-                return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+                return OperatingSystem.IsWindows() && new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
             }
         }
 #endif
@@ -119,7 +119,6 @@ namespace ImageProcessing
                             lrs.MagicScalerBenchmark();
                         }
                         lrs.SkiaBitmapBenchmark();
-                        lrs.SkiaCanvasBenchmark();
                         lrs.NetVipsBenchmark();
                     }
                     catch (Exception ex)
