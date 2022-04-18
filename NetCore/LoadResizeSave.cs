@@ -218,12 +218,14 @@ namespace ImageProcessing
             using (var original = FreeImageBitmap.FromFile(input))
             {
                 var scaled = ScaledSize(original.Width, original.Height, ThumbnailSize);
-                var resized = new FreeImageBitmap(original, scaled.width, scaled.height);
-                // JPEG_QUALITYGOOD is 75 JPEG.
-                // JPEG_BASELINE strips metadata (EXIF, etc.)
-                resized.Save(OutputPath(input, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
-                    FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
-                    FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
+                using (var resized = new FreeImageBitmap(original, scaled.width, scaled.height))
+                {
+                    // JPEG_QUALITYGOOD is 75 JPEG.
+                    // JPEG_BASELINE strips metadata (EXIF, etc.)
+                    resized.Save(OutputPath(input, FreeImage), FREE_IMAGE_FORMAT.FIF_JPEG,
+                        FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYGOOD |
+                        FREE_IMAGE_SAVE_FLAGS.JPEG_BASELINE);
+                }
             }
         }
 
@@ -244,15 +246,10 @@ namespace ImageProcessing
                 Width = ThumbnailSize,
                 Height = ThumbnailSize,
                 ResizeMode = CropScaleMode.Max,
-                SaveFormat = FileFormat.Jpeg,
-                JpegQuality = Quality,
-                JpegSubsampleMode = ChromaSubsampleMode.Subsample420
+                EncoderOptions = new JpegEncoderOptions(Quality, ChromaSubsampleMode.Subsample420, true)
             };
 
-            using (var output = new FileStream(OutputPath(input, MagicScaler), FileMode.Create))
-            {
-                MagicImageProcessor.ProcessImage(input, output, settings);
-            }
+            MagicImageProcessor.ProcessImage(input, OutputPath(input, MagicScaler), settings);
         }
 
         [Benchmark(Description = "SkiaSharp Canvas Load, Resize, Save"/*,
