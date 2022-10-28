@@ -104,6 +104,7 @@ namespace ImageProcessing
                     {
                         var lrs = new LoadResizeSave();
                         lrs.SystemDrawingBenchmark();
+                        lrs.ImageFlowBenchmark();
                         lrs.ImageSharpBenchmark();
                         if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
                         {

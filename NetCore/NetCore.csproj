@@ -16,6 +16,7 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1.1695" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1.1695" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     <PackageReference Include="FreeImage.Standard" Version="4.3.8" />
+    <PackageReference Include="Imageflow.AllPlatforms" Version="0.9.0" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="11.1.0" />
     <PackageReference Include="NetVips" Version="2.1.0" />
     <PackageReference Include="PhotoSauce.MagicScaler" Version="0.13.0" />

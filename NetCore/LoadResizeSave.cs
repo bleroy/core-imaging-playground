@@ -14,6 +14,7 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
 using NetVips;
+using ImageFlow = Imageflow.Fluent;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
 using NetVipsImage = NetVips.Image;
@@ -25,6 +26,7 @@ namespace ImageProcessing
     {
         private const int ThumbnailSize = 150;
         private const int Quality = 75;
+        private const string ImageFlow = nameof(ImageFlow);
         private const string ImageSharp = nameof(ImageSharp);
         private const string SystemDrawing = nameof(SystemDrawing);
         private const string MagickNET = nameof(MagickNET);
@@ -139,6 +141,33 @@ namespace ImageProcessing
                         encoderParams.Param[0] = qualityParam;
                         resized.Save(OutputPath(input, SystemDrawing), systemDrawingJpegCodec, encoderParams);
                     }
+                }
+            }
+        }
+
+        [Benchmark(Description = "ImageFlow Load, Resize, Save"/*,
+            OperationsPerInvoke = ImagesCount*/)]
+        public void ImageFlowBenchmark()
+        {
+            foreach (string image in Images)
+            {
+                ImageFlowResize(image);
+            }
+        }
+
+        public void ImageFlowResize(string input)
+        {
+            using (var output = File.Open(OutputPath(input, ImageFlow), FileMode.Create))
+            {
+                var imageBytes = File.ReadAllBytes(input);
+                // Resize it to fit a 150x150 square
+                using (var image = new ImageFlow.ImageJob())
+                {
+                    image
+                        .Decode(imageBytes)
+                        .ResizerCommands($"width={ThumbnailSize}&height={ThumbnailSize}&mode=max")
+                        .EncodeToStream(output, true, new ImageFlow.MozJpegEncoder(Quality, true))
+                        .Finish();
                 }
             }
         }
@@ -307,7 +336,7 @@ namespace ImageProcessing
                     foreach (var field in mutable.GetFields())
                     {
                         if (field == "icc-profile-data")
-                          continue;
+                            continue;
 
                         mutable.Remove(field);
                     }
