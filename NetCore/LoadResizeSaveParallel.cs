@@ -14,11 +14,11 @@ namespace ImageProcessing
 
         [Benchmark(Description = "ImageFlow Load, Resize, Save - Parallel"/*,
             OperationsPerInvoke = ImagesCount*/)]
-        public void ImageFlowBenchmarkParallel()
+        public async Task ImageFlowBenchmarkParallel()
         {
-            Parallel.ForEach(Images, ImageFlowResize);
+            await Parallel.ForEachAsync(Images, async (x, c) => { await ImageFlowResize(x); });
         }
-        
+
         [Benchmark(Description = "ImageSharp Load, Resize, Save - Parallel"/*,
             OperationsPerInvoke = ImagesCount*/)]
         public void ImageSharpBenchmarkParallel()

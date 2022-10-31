@@ -13,21 +13,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.1.1695" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1.1695" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.2.1974" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.2.1974" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     <PackageReference Include="FreeImage.Standard" Version="4.3.8" />
     <PackageReference Include="Imageflow.AllPlatforms" Version="0.9.0" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="11.1.0" />
-    <PackageReference Include="NetVips" Version="2.1.0" />
-    <PackageReference Include="PhotoSauce.MagicScaler" Version="0.13.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
-    <PackageReference Include="SkiaSharp" Version="2.80.3" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.2.0" />
+    <PackageReference Include="NetVips" Version="2.2.0" />
+    <PackageReference Include="PhotoSauce.MagicScaler" Version="0.13.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
+    <PackageReference Include="SkiaSharp" Version="2.88.3" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.3" /> <!-- 6+ has no improvements and disables Linux support -->
   </ItemGroup>
 
   <ItemGroup Condition="'$(BenchmarkWithNuGetBinaries)' == 'true'">
-    <PackageReference Include="NetVips.Native" Version="8.12.2" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.3" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <PackageReference Include="NetVips.Native" Version="8.13.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.3" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
   </ItemGroup>
 
   <ItemGroup>

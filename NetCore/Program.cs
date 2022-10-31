@@ -13,6 +13,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
+using System.Threading.Tasks;
 
 namespace ImageProcessing
 {
@@ -85,7 +86,7 @@ namespace ImageProcessing
 
     public static class Program
     {
-        public static void Main(string[] args)
+        public async static Task Main(string[] args)
         {
             var config = new ShortRunWithMemoryDiagnoserConfig();
 
@@ -104,10 +105,10 @@ namespace ImageProcessing
                     {
                         var lrs = new LoadResizeSave();
                         lrs.SystemDrawingBenchmark();
-                        lrs.ImageFlowBenchmark();
                         lrs.ImageSharpBenchmark();
                         if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
                         {
+                            await lrs.ImageFlowBenchmark();
                             lrs.MagickBenchmark();
                         }
                         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||

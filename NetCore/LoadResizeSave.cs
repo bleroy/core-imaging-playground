@@ -19,6 +19,7 @@ using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
 using NetVipsImage = NetVips.Image;
 using SystemDrawingImage = System.Drawing.Image;
+using System.Threading.Tasks;
 
 namespace ImageProcessing
 {
@@ -147,15 +148,15 @@ namespace ImageProcessing
 
         [Benchmark(Description = "ImageFlow Load, Resize, Save"/*,
             OperationsPerInvoke = ImagesCount*/)]
-        public void ImageFlowBenchmark()
+        public async Task ImageFlowBenchmark()
         {
             foreach (string image in Images)
             {
-                ImageFlowResize(image);
+                await ImageFlowResize(image);
             }
         }
 
-        public void ImageFlowResize(string input)
+        public async Task ImageFlowResize(string input)
         {
             using (var output = File.Open(OutputPath(input, ImageFlow), FileMode.Create))
             {
@@ -163,11 +164,19 @@ namespace ImageProcessing
                 // Resize it to fit a 150x150 square
                 using (var image = new ImageFlow.ImageJob())
                 {
-                    image
-                        .Decode(imageBytes)
-                        .ResizerCommands($"width={ThumbnailSize}&height={ThumbnailSize}&mode=max")
-                        .EncodeToStream(output, true, new ImageFlow.MozJpegEncoder(Quality, true))
-                        .Finish();
+                    var o = 
+                        await image
+                            .Decode(imageBytes)
+                            .ResizerCommands($"width={ThumbnailSize}&height={ThumbnailSize}&mode=max")
+                            .EncodeToBytes(new ImageFlow.MozJpegEncoder(Quality, true))
+                            .Finish()
+                            .InProcessAsync();
+
+                    if (o.First.TryGetBytes().HasValue)
+                    {
+                        var b = o.First.TryGetBytes().Value.ToArray();
+                        await output.WriteAsync(b, 0, b.Length);
+                    }
                 }
             }
         }

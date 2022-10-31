@@ -15,6 +15,9 @@ using Size = System.Drawing.Size;
 using Rectangle = System.Drawing.Rectangle;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
+using ImageFlow = Imageflow.Fluent;
+using System.Threading.Tasks;
+
 
 namespace ImageProcessing
 {
@@ -53,6 +56,23 @@ namespace ImageProcessing
                 }
 
                 return destination.Size;
+            }
+        }
+
+        [Benchmark(Description = "ImageFlow Resize")]
+        public async Task<Size> ResizeImageFlow()
+        {
+            using (var image = new ImageFlow.ImageJob())
+            {
+                var o = 
+                    await image
+                            .CreateCanvasBgr32(Width, Height, new ImageFlow.AnyColor())
+                            .ResizerCommands($"width={ResizedWidth}&height={ResizedHeight}")
+                            .EncodeToBytes(new ImageFlow.MozJpegEncoder(0))
+                            .Finish()
+                            .InProcessAsync();
+
+                return new Size(o.First.Width, o.First.Height);
             }
         }
 
