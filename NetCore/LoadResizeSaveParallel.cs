@@ -40,14 +40,7 @@ namespace ImageProcessing
             Parallel.ForEach(Images, MagicScalerResize);
         }
 
-        [Benchmark(Description = "SkiaSharp Canvas Load, Resize, Save - Parallel"/*,
-            OperationsPerInvoke = ImagesCount*/)]
-        public void SkiaCanvasBenchmarkParallel()
-        {
-            Parallel.ForEach(Images, SkiaCanvasResize);
-        }
-
-        [Benchmark(Description = "SkiaSharp Bitmap Load, Resize, Save - Parallel"/*,
+        [Benchmark(Description = "SkiaSharp Load, Resize, Save - Parallel"/*,
             OperationsPerInvoke = ImagesCount*/)]
         public void SkiaBitmapBenchmarkParallel()
         {

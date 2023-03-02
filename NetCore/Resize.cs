@@ -115,26 +115,7 @@ namespace ImageProcessing
             }
         }
 
-        [Benchmark(Description = "SkiaSharp Canvas Resize")]
-        public SKSize SkiaCanvasResizeBenchmark()
-        {
-            using (var original = new SKBitmap(Width, Height))
-            using (var surface = SKSurface.Create(new SKImageInfo(ResizedWidth, ResizedHeight)))
-            using (var paint = new SKPaint())
-            {
-                var canvas = surface.Canvas;
-                var scale = (float)ResizedWidth / Width;
-                canvas.Scale(scale);
-
-                paint.FilterQuality = SKFilterQuality.High;
-                canvas.DrawBitmap(original, 0, 0, paint);
-                canvas.Flush();
-
-                return new SKSize(canvas.DeviceClipBounds.Width, canvas.DeviceClipBounds.Height);
-            }
-        }
-
-        [Benchmark(Description = "SkiaSharp Bitmap Resize")]
+        [Benchmark(Description = "SkiaSharp Resize")]
         public SKSize SkiaBitmapResizeBenchmark()
         {
             using (var original = new SKBitmap(Width, Height))
