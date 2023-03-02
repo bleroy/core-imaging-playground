@@ -8,13 +8,12 @@ using FreeImageAPI;
 using ImageMagick;
 using NetVips;
 using PhotoSauce.MagicScaler;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
-using Size = System.Drawing.Size;
-using Rectangle = System.Drawing.Rectangle;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
+using Rectangle = System.Drawing.Rectangle;
+using Size = System.Drawing.Size;
 
 namespace ImageProcessing
 {
@@ -62,7 +61,7 @@ namespace ImageProcessing
             using (var image = new ImageSharpImage(Width, Height))
             {
                 image.Mutate(i => i.Resize(ResizedWidth, ResizedHeight, KnownResamplers.Bicubic));
-                return image.Size();
+                return image.Size;
             }
         }
 

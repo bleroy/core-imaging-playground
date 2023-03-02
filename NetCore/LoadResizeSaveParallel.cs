@@ -19,6 +19,13 @@ namespace ImageProcessing
             Parallel.ForEach(Images, ImageSharpResize);
         }
 
+        [Benchmark(Description = "ImageSharp TD Load, Resize, Save - Parallel"/*,
+            OperationsPerInvoke = ImagesCount*/)]
+        public void ImageSharpTargetedDecodeBenchmarkParallel()
+        {
+            Parallel.ForEach(Images, ImageSharpTargetedDecodeResize);
+        }
+
         [Benchmark(Description = "ImageMagick Load, Resize, Save - Parallel"/*,
             OperationsPerInvoke = ImagesCount*/)]
         public void MagickBenchmarkParallel()

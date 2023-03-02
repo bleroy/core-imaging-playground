@@ -12,7 +12,6 @@ using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Toolchains.CsProj;
 
 namespace ImageProcessing
 {
@@ -21,16 +20,6 @@ namespace ImageProcessing
         public ShortRunWithMemoryDiagnoserConfig()
         {
             this.AddJob(Job.ShortRun
-#if NETCOREAPP2_1
-                .WithToolchain(CsProjCoreToolchain.NetCoreApp21)
-                .WithId(".Net Core 2.1 CLI")
-#elif NETCOREAPP3_1
-                .WithToolchain(CsProjCoreToolchain.NetCoreApp31)
-                .WithId(".Net Core 3.1 CLI")
-#elif NET5_0
-                .WithToolchain(CsProjCoreToolchain.NetCoreApp50)
-                .WithId(".Net 5.0 CLI")
-#endif
                 .WithWarmupCount(5)
                 .WithIterationCount(5)
                 .WithArguments(new Argument[]
@@ -97,14 +86,17 @@ namespace ImageProcessing
 3. Load, resize, save in parallel
 
 ");
+
             switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.D0:
+                case ConsoleKey.NumPad0:
                     try
                     {
                         var lrs = new LoadResizeSave();
                         lrs.SystemDrawingBenchmark();
                         lrs.ImageSharpBenchmark();
+                        lrs.ImageSharpTargetedDecodeBenchmark();
                         if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
                         {
                             lrs.MagickBenchmark();
@@ -127,12 +119,15 @@ namespace ImageProcessing
                     }
                     break;
                 case ConsoleKey.D1:
+                case ConsoleKey.NumPad1:
                     BenchmarkRunner.Run<Resize>(config);
                     break;
                 case ConsoleKey.D2:
+                case ConsoleKey.NumPad2:
                     BenchmarkRunner.Run<LoadResizeSave>(config);
                     break;
                 case ConsoleKey.D3:
+                case ConsoleKey.NumPad3:
                     // Only run the *Parallel benchmarks
                     BenchmarkRunner.Run<LoadResizeSaveParallel>(config
                         .AddFilter(new NameFilter(name => name.EndsWith("Parallel"))));
