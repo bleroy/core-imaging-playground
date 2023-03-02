@@ -9,11 +9,12 @@ using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
+using NetVips;
 using PhotoSauce.MagicScaler;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
-using NetVips;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
 using NetVipsImage = NetVips.Image;
@@ -26,6 +27,7 @@ namespace ImageProcessing
         private const int ThumbnailSize = 150;
         private const int Quality = 75;
         private const string ImageSharp = nameof(ImageSharp);
+        private readonly string ImageSharpTD = nameof(ImageSharp) + "TD";
         private const string SystemDrawing = nameof(SystemDrawing);
         private const string MagickNET = nameof(MagickNET);
         private const string NetVips = nameof(NetVips);
@@ -35,7 +37,7 @@ namespace ImageProcessing
         private const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
         // Set the quality for ImagSharp
-        private readonly JpegEncoder imageSharpJpegEncoder = new JpegEncoder { Quality = Quality, ColorType = JpegColorType.YCbCrRatio420 };
+        private readonly JpegEncoder imageSharpJpegEncoder = new() { Quality = Quality, ColorType = JpegEncodingColor.YCbCrRatio420 };
         private readonly ImageCodecInfo systemDrawingJpegCodec =
             ImageCodecInfo.GetImageEncoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
 
@@ -171,10 +173,36 @@ namespace ImageProcessing
                     image.Metadata.IptcProfile = null;
                     image.Metadata.XmpProfile = null;
 
-                    // Save the results
+                    // Save the results.
                     image.Save(output, imageSharpJpegEncoder);
                 }
             }
+        }
+
+        [Benchmark(Description = "ImageSharp TD Load, Resize, Save"/*,
+            OperationsPerInvoke = ImagesCount*/)]
+        public void ImageSharpTargetedDecodeBenchmark()
+        {
+            foreach (string image in Images)
+            {
+                ImageSharpTargetedDecodeResize(image);
+            }
+        }
+
+        public void ImageSharpTargetedDecodeResize(string input)
+        {
+            DecoderOptions options = new()
+            {
+                // Resize it to fit a 150x150 square
+                TargetSize = new(ThumbnailSize, ThumbnailSize),
+                SkipMetadata = true
+            };
+
+            using var output = File.Open(OutputPath(input, ImageSharpTD), FileMode.Create);
+            using var image = ImageSharpImage.Load(options, input);
+
+            // Save the results.
+            image.Save(output, imageSharpJpegEncoder);
         }
 
         [Benchmark(Description = "ImageMagick Load, Resize, Save"/*,
@@ -307,7 +335,7 @@ namespace ImageProcessing
                     foreach (var field in mutable.GetFields())
                     {
                         if (field == "icc-profile-data")
-                          continue;
+                            continue;
 
                         mutable.Remove(field);
                     }
