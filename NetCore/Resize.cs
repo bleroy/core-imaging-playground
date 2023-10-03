@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
@@ -10,11 +11,9 @@ using NetVips;
 using PhotoSauce.MagicScaler;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
+using ImageFlow = Imageflow.Fluent;
 using ImageSharpImage = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
-using ImageFlow = Imageflow.Fluent;
-using System.Threading.Tasks;
-
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
@@ -63,7 +62,7 @@ namespace ImageProcessing
         {
             using (var image = new ImageFlow.ImageJob())
             {
-                var o = 
+                var o =
                     await image
                             .CreateCanvasBgr32(Width, Height, new ImageFlow.AnyColor())
                             .ResizerCommands($"width={ResizedWidth}&height={ResizedHeight}")

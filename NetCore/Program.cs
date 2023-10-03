@@ -12,6 +12,7 @@ using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
+using System.Threading.Tasks;
 
 namespace ImageProcessing
 {

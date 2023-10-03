@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using FreeImageAPI;
 using ImageMagick;
@@ -15,13 +16,11 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
-using NetVips;
 using ImageFlow = Imageflow.Fluent;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
 using NetVipsImage = NetVips.Image;
 using SystemDrawingImage = System.Drawing.Image;
-using System.Threading.Tasks;
 
 namespace ImageProcessing
 {
@@ -163,11 +162,11 @@ namespace ImageProcessing
         {
             using (var output = File.Open(OutputPath(input, ImageFlow), FileMode.Create))
             {
-                var imageBytes = File.ReadAllBytes(input);
+                var imageBytes = await File.ReadAllBytesAsync(input);
                 // Resize it to fit a 150x150 square
                 using (var image = new ImageFlow.ImageJob())
                 {
-                    var o = 
+                    var o =
                         await image
                             .Decode(imageBytes)
                             .ResizerCommands($"width={ThumbnailSize}&height={ThumbnailSize}&mode=max")
@@ -175,6 +174,7 @@ namespace ImageProcessing
                             .Finish()
                             .InProcessAsync();
 
+                    // Don't throw, bad for benchmark.
                     if (o.First.TryGetBytes().HasValue)
                     {
                         var b = o.First.TryGetBytes().Value.ToArray();
@@ -234,11 +234,15 @@ namespace ImageProcessing
             {
                 // Resize it to fit a 150x150 square
                 TargetSize = new(ThumbnailSize, ThumbnailSize),
-                SkipMetadata = true
             };
 
             using var output = File.Open(OutputPath(input, ImageSharpTD), FileMode.Create);
             using var image = ImageSharpImage.Load(options, input);
+
+            // Reduce the size of the file
+            image.Metadata.ExifProfile = null;
+            image.Metadata.IptcProfile = null;
+            image.Metadata.XmpProfile = null;
 
             // Save the results.
             image.Save(output, imageSharpJpegEncoder);
