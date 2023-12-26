@@ -22,12 +22,7 @@ namespace ImageProcessing
         {
             this.AddJob(Job.ShortRun
                 .WithWarmupCount(5)
-                .WithIterationCount(5)
-                .WithArguments(new Argument[]
-                {
-                    // See https://github.com/dotnet/roslyn/issues/42393
-                    new MsBuildArgument("/p:DebugType=portable")
-                }));
+                .WithIterationCount(5));
 
             this.AddColumnProvider(DefaultColumnProviders.Instance);
             this.AddLogger(ConsoleLogger.Default);
@@ -54,8 +49,7 @@ namespace ImageProcessing
             }
 
 #if Windows_NT
-            // See https://github.com/microsoft/perfview/issues/1264
-            if (this.IsElevated && RuntimeInformation.OSArchitecture != Architecture.Arm64)
+            if (this.IsElevated)
             {
                 this.AddDiagnoser(new NativeMemoryProfiler());
             }
