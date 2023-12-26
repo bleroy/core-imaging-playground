@@ -369,23 +369,10 @@ namespace ImageProcessing
         public void NetVipsResize(string input)
         {
             // Thumbnail to fit a 150x150 square
-            using (var thumb = NetVipsImage.Thumbnail(input, ThumbnailSize, ThumbnailSize))
-            {
-                // Remove all metadata except color profile
-                using var mutated = thumb.Mutate(mutable =>
-                {
-                    foreach (var field in mutable.GetFields())
-                    {
-                        if (field == "icc-profile-data")
-                            continue;
+            using var thumb = NetVipsImage.Thumbnail(input, ThumbnailSize, ThumbnailSize);
 
-                        mutable.Remove(field);
-                    }
-                });
-
-                // Save the results
-                mutated.Jpegsave(OutputPath(input, NetVips), q: Quality);
-            }
+            // Save the results
+            thumb.Jpegsave(OutputPath(input, NetVips), q: Quality, keep: Enums.ForeignKeep.Icc);
         }
     }
 }
