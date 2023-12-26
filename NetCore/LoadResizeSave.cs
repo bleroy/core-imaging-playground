@@ -36,7 +36,6 @@ namespace ImageProcessing
         private const string NetVips = nameof(NetVips);
         private const string FreeImage = nameof(FreeImage);
         private const string MagicScaler = nameof(MagicScaler);
-        private const string SkiaSharpCanvas = nameof(SkiaSharpCanvas);
         private const string SkiaSharpBitmap = nameof(SkiaSharpBitmap);
 
         // Set the quality for ImagSharp
