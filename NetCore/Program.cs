@@ -35,12 +35,6 @@ namespace ImageProcessing
                 this.AddFilter(new NameFilter(name => !name.StartsWith("MagicScalerBenchmark")));
             }
 
-            if (RuntimeInformation.OSArchitecture is not (Architecture.X86 or Architecture.X64))
-            {
-                // ImageMagick native binaries are currently only available for X86 and X64
-                this.AddFilter(new NameFilter(name => !name.StartsWith("Magick")));
-            }
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
                 RuntimeInformation.OSArchitecture == Architecture.Arm64)
             {
@@ -92,10 +86,10 @@ namespace ImageProcessing
                         lrs.SystemDrawingBenchmark();
                         lrs.ImageSharpBenchmark();
                         lrs.ImageSharpTargetedDecodeBenchmark();
+                        lrs.MagickBenchmark();
                         if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
                         {
                             await lrs.ImageFlowBenchmark();
-                            lrs.MagickBenchmark();
                         }
                         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                             RuntimeInformation.OSArchitecture != Architecture.Arm64)
