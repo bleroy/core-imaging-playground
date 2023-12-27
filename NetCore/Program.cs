@@ -35,6 +35,12 @@ namespace ImageProcessing
                 this.AddFilter(new NameFilter(name => !name.StartsWith("MagicScalerBenchmark")));
             }
 
+            if (RuntimeInformation.OSArchitecture is not (Architecture.X86 or Architecture.X64))
+            {
+                // ImageFlow native binaries are currently only available for X86 and X64
+                this.AddFilter(new NameFilter(name => !name.StartsWith("ImageFlow")));
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
                 RuntimeInformation.OSArchitecture == Architecture.Arm64)
             {
