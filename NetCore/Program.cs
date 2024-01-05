@@ -22,12 +22,7 @@ namespace ImageProcessing
         {
             this.AddJob(Job.ShortRun
                 .WithWarmupCount(5)
-                .WithIterationCount(5)
-                .WithArguments(new Argument[]
-                {
-                    // See https://github.com/dotnet/roslyn/issues/42393
-                    new MsBuildArgument("/p:DebugType=portable")
-                }));
+                .WithIterationCount(5));
 
             this.AddColumnProvider(DefaultColumnProviders.Instance);
             this.AddLogger(ConsoleLogger.Default);
@@ -42,8 +37,8 @@ namespace ImageProcessing
 
             if (RuntimeInformation.OSArchitecture is not (Architecture.X86 or Architecture.X64))
             {
-                // ImageMagick native binaries are currently only available for X86 and X64
-                this.AddFilter(new NameFilter(name => !name.StartsWith("Magick")));
+                // ImageFlow native binaries are currently only available for X86 and X64
+                this.AddFilter(new NameFilter(name => !name.StartsWith("ImageFlow")));
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
@@ -54,8 +49,7 @@ namespace ImageProcessing
             }
 
 #if Windows_NT
-            // See https://github.com/microsoft/perfview/issues/1264
-            if (this.IsElevated && RuntimeInformation.OSArchitecture != Architecture.Arm64)
+            if (this.IsElevated)
             {
                 this.AddDiagnoser(new NativeMemoryProfiler());
             }
@@ -98,10 +92,10 @@ namespace ImageProcessing
                         lrs.SystemDrawingBenchmark();
                         lrs.ImageSharpBenchmark();
                         lrs.ImageSharpTargetedDecodeBenchmark();
+                        lrs.MagickBenchmark();
                         if (RuntimeInformation.OSArchitecture is Architecture.X86 or Architecture.X64)
                         {
                             await lrs.ImageFlowBenchmark();
-                            lrs.MagickBenchmark();
                         }
                         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                             RuntimeInformation.OSArchitecture != Architecture.Arm64)

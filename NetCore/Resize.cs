@@ -151,15 +151,14 @@ namespace ImageProcessing
             const double xFactor = (double)ResizedWidth / Width;
             const double yFactor = (double)ResizedHeight / Height;
 
-            using (var original = NetVips.Image.Black(Width, Height, 3))
-            using (var resized = original.Resize(xFactor, vscale: yFactor, kernel: Enums.Kernel.Cubic))
-            {
-                // libvips is "lazy" and will not process pixels
-                // until you write to an output file, buffer or memory
-                var _ = resized.CopyMemory();
+            using var original = NetVips.Image.Black(Width, Height, 3);
+            using var resized = original.Resize(xFactor, vscale: yFactor, kernel: Enums.Kernel.Cubic, gap: 0.0);
 
-                return (resized.Width, resized.Height);
-            }
+            // libvips is "lazy" and will not process pixels
+            // until you write to an output file, buffer or memory
+            _ = resized.CopyMemory();
+
+            return (resized.Width, resized.Height);
         }
     }
 }
