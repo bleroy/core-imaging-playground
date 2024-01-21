@@ -12,6 +12,7 @@ using FreeImageAPI;
 using ImageMagick;
 using NetVips;
 using PhotoSauce.MagicScaler;
+using PhotoSauce.NativeCodecs.Libjpeg;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
@@ -59,6 +60,14 @@ namespace ImageProcessing
 
             // Disable libvips operations cache
             Cache.Max = 0;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // Use xplat JPEG codec for MagicScaler
+                CodecManager.Configure(codecs => {
+                    codecs.UseLibjpeg();
+                });
+            }
 
             // Find the closest images directory
             string imageDirectory = Path.GetFullPath(".");
