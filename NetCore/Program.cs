@@ -29,9 +29,9 @@ namespace ImageProcessing
             this.AddExporter(MarkdownExporter.GitHub);
             this.AddDiagnoser(MemoryDiagnoser.Default);
 
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                // MagicScaler requires Windows Imaging Component (WIC) which is only available on Windows
+                // MagicScaler does not currently have native codecs available for macOS
                 this.AddFilter(new NameFilter(name => !name.StartsWith("MagicScalerBenchmark")));
             }
 
@@ -102,7 +102,7 @@ namespace ImageProcessing
                         {
                             lrs.FreeImageBenchmark();
                         }
-                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                         {
                             lrs.MagicScalerBenchmark();
                         }
