@@ -137,7 +137,7 @@ namespace ImageProcessing
         public SKSize SkiaBitmapResizeBenchmark()
         {
             using (var original = new SKBitmap(Width, Height))
-            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.High))
+            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), new SKSamplingOptions(SKCubicResampler.Mitchell)))
             using (var image = SKImage.FromBitmap(resized))
             {
                 return new SKSize(image.Width, image.Height);

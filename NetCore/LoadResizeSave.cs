@@ -348,7 +348,7 @@ namespace ImageProcessing
             using (var original = SKBitmap.Decode(input))
             {
                 var scaled = ScaledSize(original.Width, original.Height, ThumbnailSize);
-                using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), SKFilterQuality.High))
+                using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), new SKSamplingOptions(SKCubicResampler.Mitchell)))
                 {
                     if (resized == null)
                     {
