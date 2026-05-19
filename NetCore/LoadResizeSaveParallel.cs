@@ -5,7 +5,7 @@ namespace ImageProcessing
 {
     public class LoadResizeSaveParallel : LoadResizeSave
     {
-        [Benchmark(Baseline = true, Description = "System.Drawing Load, Resize, Save - Parallel"/*,
+        [Benchmark(Description = "System.Drawing Load, Resize, Save - Parallel"/*,
             OperationsPerInvoke = ImagesCount*/)]
         public void SystemDrawingBenchmarkParallel()
         {
