@@ -21,6 +21,7 @@ using ImageFlow = Imageflow.Fluent;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using ImageSharpSize = SixLabors.ImageSharp.Size;
 using NetVipsImage = NetVips.Image;
+using NetVipsUtils = NetVips.NetVips;
 using SystemDrawingImage = System.Drawing.Image;
 
 namespace ImageProcessing
@@ -60,6 +61,9 @@ namespace ImageProcessing
 
             // Disable libvips operations cache
             Cache.Max = 0;
+
+            // Reduce concurrency in libvips, as a large thread pool can slow down overall processing
+            NetVipsUtils.Concurrency = 4;
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -348,7 +352,7 @@ namespace ImageProcessing
             using (var original = SKBitmap.Decode(input))
             {
                 var scaled = ScaledSize(original.Width, original.Height, ThumbnailSize);
-                using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), SKFilterQuality.High))
+                using (var resized = original.Resize(new SKImageInfo(scaled.width, scaled.height), new SKSamplingOptions(SKCubicResampler.Mitchell)))
                 {
                     if (resized == null)
                     {

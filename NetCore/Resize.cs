@@ -36,6 +36,9 @@ namespace ImageProcessing
 
             // Disable libvips operations cache
             Cache.Max = 0;
+
+            // Reduce concurrency in libvips, as a large thread pool can slow down overall processing
+            NetVips.NetVips.Concurrency = 4;
         }
 
         [Benchmark(Baseline = true, Description = "System.Drawing Resize")]
@@ -137,7 +140,7 @@ namespace ImageProcessing
         public SKSize SkiaBitmapResizeBenchmark()
         {
             using (var original = new SKBitmap(Width, Height))
-            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), SKFilterQuality.High))
+            using (var resized = original.Resize(new SKImageInfo(ResizedWidth, ResizedHeight), new SKSamplingOptions(SKCubicResampler.Mitchell)))
             using (var image = SKImage.FromBitmap(resized))
             {
                 return new SKSize(image.Width, image.Height);
